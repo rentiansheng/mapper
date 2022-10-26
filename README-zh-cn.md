@@ -1,9 +1,8 @@
 ## Mapper
+golang 数据深拷贝的类库，支持数据自动映射。 map to struct, struct to map, struct to struct.
 
-golang  deep copy library，automatic data mapping。 map to struct, struct to map, struct to struct.
-[中文文档](/README-zh-cn.md)
 
-### Install
+### Install 
 ```go
 go get -u github.com/rentiansheng/mapper
 ```
@@ -76,18 +75,19 @@ func main() {
 
 ### Features
 
-- struct private field automatic mapping
-- slice automatic mapping
-- automatic mapping by field name
-- automatic mapping by field tag
-- struct to map automatic mapping
-- map to struct automatic mapping
-- []byte to string automatic mapping
-- data type automatic mapping 
--  any data type to interface data type
+- 支持struct私有字段自动映射
+- 支持slice 自动映射
+- 支持按照字段名自动映射
+- 支持按照tag 自动映射
+- 支持struct 到map 自动映射
+- 支持map 到 struct 自动映射
+- 支持[]byte to string 
+- 数据类型自动识别
+- 支持 数据 to interface 自动映射
+ 
 
+### TODO: 
 
-### TODO
+- 实现[]*Type to []Type
+- 实现[]Type to []*Type 
 
-- []*Type to []Type automatic mapping
-- Type to []*Type  automatic mapping
