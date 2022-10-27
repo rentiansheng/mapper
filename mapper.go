@@ -27,15 +27,15 @@ func init() {
 	allMapper.structCache.copyPrivate = true
 }
 
-func Mapper(src, dst interface{}) error {
-	return mapperHandler(mapper, src, dst)
+func Mapper(ctx context.Context, src, dst interface{}) error {
+	return mapperHandler(ctx, mapper, src, dst)
 }
 
-func AllMapper(src, dst interface{}) error {
-	return mapperHandler(allMapper, src, dst)
+func AllMapper(ctx context.Context, src, dst interface{}) error {
+	return mapperHandler(ctx, allMapper, src, dst)
 }
 
-func mapperHandler(dcv *defaultCopyValue, src, dst interface{}) error {
+func mapperHandler(ctx context.Context, dcv *defaultCopyValue, src, dst interface{}) error {
 	dstV := reflect.ValueOf(dst).Elem()
 	if !dstV.CanSet() {
 		return CopyValueError{Name: "mapper", Kinds: []reflect.Kind{reflect.Bool}, Received: dstV}

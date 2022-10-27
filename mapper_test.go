@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"context"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -45,7 +46,7 @@ func TestMapper(t *testing.T) {
 		},
 	}
 	dst := testCopyStructDst{}
-	err := Mapper(src, &dst)
+	err := Mapper(context.TODO(), src, &dst)
 	require.NoError(t, err)
 	require.Equal(t, src.Int, dst.Int)
 	require.Equal(t, src.AliasCopy, dst.Copy)
@@ -67,7 +68,7 @@ func TestMapperAll(t *testing.T) {
 		},
 	}
 	dst := testCopyStructDst{}
-	err := AllMapper(src, &dst)
+	err := AllMapper(context.TODO(), src, &dst)
 	require.NoError(t, err)
 	require.Equal(t, src.Int, dst.Int)
 	require.Equal(t, src.AliasCopy, dst.Copy)
