@@ -16,7 +16,8 @@ func (dcv *defaultCopyValue) InterfaceCopyValue(ctx context.Context, src, dst re
 	if !dst.CanSet() && dst.Kind() != reflect.Interface {
 		return CopyValueError{Name: "InterfaceCopyValue", Kinds: []reflect.Kind{reflect.Interface}, Received: dst}
 	}
-	//
+
+	src = skipPtrElem(src)
 	for src.Kind() == reflect.Interface {
 		src = src.Elem()
 	}

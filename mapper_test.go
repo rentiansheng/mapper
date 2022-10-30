@@ -76,3 +76,59 @@ func TestMapperAll(t *testing.T) {
 	require.Equal(t, src.A, dst.A)
 	require.Equal(t, src.b, dst.b)
 }
+
+func TestStructToPtrStructMapper(t *testing.T) {
+	type inlineStruct struct {
+		A string
+		b string
+	}
+
+	// tst copy []struct to []*struct
+	type dstStruct struct {
+		inlineStruct
+	}
+	src := []dstStruct{
+		dstStruct{
+			inlineStruct{
+				A: "inline a",
+				b: "inline b private field",
+			},
+		},
+	}
+
+	result := make([]*dstStruct, 0)
+
+	err := AllMapper(ctx, src, &result)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(result))
+	require.Equal(t, src[0].inlineStruct, result[0].inlineStruct)
+
+}
+
+func TestPtrStructToStructMapper(t *testing.T) {
+	type inlineStruct struct {
+		A string
+		b string
+	}
+
+	// tst copy []struct to []*struct
+	type dstStruct struct {
+		inlineStruct
+	}
+	src := []*dstStruct{
+		&dstStruct{
+			inlineStruct{
+				A: "inline a",
+				b: "inline b private field",
+			},
+		},
+	}
+
+	result := make([]dstStruct, 0)
+
+	err := AllMapper(ctx, src, &result)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(result))
+	require.Equal(t, src[0].inlineStruct, result[0].inlineStruct)
+
+}

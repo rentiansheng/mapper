@@ -39,6 +39,7 @@ func (dcv *defaultCopyValue) BooleanCopyValue(ctx context.Context, src, dst refl
 		return CopyValueError{Name: "BooleanCopyValue", Kinds: []reflect.Kind{reflect.Bool}, Received: dst}
 	}
 
+	src = skipPtrElem(src)
 	if src.Kind() != dst.Kind() {
 		return fmt.Errorf("cannot copy %v into a boolean", src.Type())
 	}
@@ -56,6 +57,7 @@ func (dcv *defaultCopyValue) IntCopyValue(ctx context.Context, src, dst reflect.
 		}
 	}
 
+	src = skipPtrElem(src)
 	var i64 int64
 	switch src.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -108,6 +110,7 @@ func (dcv *defaultCopyValue) UintCopyValue(ctx context.Context, src, dst reflect
 		}
 	}
 
+	src = skipPtrElem(src)
 	var i64 uint64
 	switch src.Kind() {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
@@ -157,6 +160,7 @@ func (dcv *defaultCopyValue) FloatCopyValue(ctx context.Context, src, dst reflec
 		return CopyValueError{Name: "FloatCopyValue", Kinds: []reflect.Kind{reflect.Float32, reflect.Float64}, Received: dst}
 	}
 
+	src = skipPtrElem(src)
 	var f float64
 	switch src.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -193,6 +197,7 @@ func (dcv *defaultCopyValue) StringCopyValue(ctx context.Context, src, dst refle
 		return CopyValueError{Name: "StringCopyValue", Kinds: []reflect.Kind{reflect.String}, Received: dst}
 	}
 
+	src = skipPtrElem(src)
 	var str string
 	switch src.Kind() {
 	case reflect.String:
@@ -216,17 +221,21 @@ func (dcv *defaultCopyValue) SliceCopyValue(ctx context.Context, src, dst reflec
 		return CopyValueError{Name: "SliceCopyValue", Kinds: []reflect.Kind{reflect.Slice}, Received: dst}
 	}
 
+	src = skipPtrElem(src)
 	switch src.Kind() {
 	case reflect.Slice:
-		if src.Type().Elem().Kind() != dst.Type().Elem().Kind() {
+		dstKind := dst.Type().Elem().Kind()
+		dstElem := src.Type().Elem()
+		if (dstElem.Kind() != dstKind) &&
+			(dstElem.Kind() == reflect.Ptr && dstElem.Elem().Kind() != dstKind) {
+			// not support copy []*int to []int
+			// not support copy []int to []*int
 			return fmt.Errorf("cannot copy slice from %s into %s", src.Type(), dst.Type())
 		}
 	default:
 		return fmt.Errorf("cannot copy %v into a slice", src.Type())
 	}
 
-	// TODO: not support copy []*int to []int
-	// TODO: not support copy []int to []*int
 	if dst.IsZero() {
 		dst.Set(reflect.MakeSlice(dst.Type(), 0, src.Len()))
 	}
@@ -327,6 +336,7 @@ func (dcv *defaultCopyValue) PtrCopyValue(ctx context.Context, src, dst reflect.
 	if !dst.CanSet() || dst.Kind() != reflect.Ptr {
 		return CopyValueError{Name: "PtrCopyValue", Kinds: []reflect.Kind{reflect.Ptr}, Received: dst}
 	}
+
 	if src.IsZero() {
 		dst.Set(reflect.Zero(dst.Type()))
 		return nil
@@ -343,4 +353,11 @@ func (dcv *defaultCopyValue) PtrCopyValue(ctx context.Context, src, dst reflect.
 		return err
 	}
 	return fn(ctx, src, dst.Elem())
+}
+
+func skipPtrElem(elem reflect.Value) reflect.Value {
+	for elem.Kind() == reflect.Ptr {
+		elem = elem.Elem()
+	}
+	return elem
 }
