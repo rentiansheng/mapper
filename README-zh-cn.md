@@ -84,10 +84,7 @@ func main() {
 - 支持[]byte to string 
 - 数据类型自动识别
 - 支持 数据 to interface 自动映射
- 
-
-### TODO: 
-
 - 实现[]*Type to []Type
 - 实现[]Type to []*Type 
+- 支持struct tag 别名拷贝，`json:"aa,copy=bb"`
 

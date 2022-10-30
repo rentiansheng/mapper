@@ -84,9 +84,6 @@ func main() {
 - []byte to string automatic mapping
 - data type automatic mapping 
 -  any data type to interface data type
-
-
-### TODO
-
 - []*Type to []Type automatic mapping
-- Type to []*Type  automatic mapping
+- []Type to []*Type  automatic mapping
+- copy use struct tag alias name，`json:"aa,copy=bb"`
