@@ -12,27 +12,23 @@ import (
 
 ***************************/
 
-type Option struct {
-	copyPrivate bool
-}
-
 var (
-	mapper    *defaultCopyValue
-	allMapper *defaultCopyValue
+	mapperCV    *defaultCopyValue
+	allMapperCV *defaultCopyValue
 )
 
 func init() {
-	mapper = newCopyValue()
-	allMapper = newCopyValue()
-	allMapper.structCache.copyPrivate = true
+	mapperCV = newCopyValue()
+	allMapperCV = newCopyValue()
+	allMapperCV.structCache.copyPrivate = true
 }
 
 func Mapper(ctx context.Context, src, dst interface{}) error {
-	return mapperHandler(ctx, mapper, src, dst)
+	return mapperHandler(ctx, mapperCV, src, dst)
 }
 
 func AllMapper(ctx context.Context, src, dst interface{}) error {
-	return mapperHandler(ctx, allMapper, src, dst)
+	return mapperHandler(ctx, allMapperCV, src, dst)
 }
 
 func mapperHandler(ctx context.Context, dcv *defaultCopyValue, src, dst interface{}) error {
@@ -45,5 +41,32 @@ func mapperHandler(ctx context.Context, dcv *defaultCopyValue, src, dst interfac
 	if err != nil {
 		return err
 	}
-	return fn(context.TODO(), srcV, dstV)
+	return fn(ctx, srcV, dstV)
+}
+
+type mapper interface {
+	Mapper(ctx context.Context, src, dst interface{}) error
+}
+
+func NewMapper(options ...Option) mapper {
+	option := mergeOption(options...)
+	handler := newCopyValue()
+	if option.copyPrivate != nil {
+		handler.structCache.validateStruct = *option.copyPrivate
+	}
+	if option.validateStruct != nil && *option.validateStruct == true {
+		// Notice: copy tag change, here need change
+		handler.validate = newValidateStruct()
+	}
+	return &mapperInstance{
+		cv: handler,
+	}
+}
+
+type mapperInstance struct {
+	cv *defaultCopyValue
+}
+
+func (m mapperInstance) Mapper(ctx context.Context, src, dst interface{}) error {
+	return mapperHandler(ctx, m.cv, src, dst)
 }

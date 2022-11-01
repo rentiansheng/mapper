@@ -16,7 +16,7 @@ import (
 ***************************/
 
 var (
-	defaultCopyValueHanler = newCopyValue()
+	defaultCopyValueHandler = newCopyValue()
 )
 
 func newCopyValue() *defaultCopyValue {
@@ -32,6 +32,7 @@ type defaultCopyValue struct {
 	structCache *structCache
 
 	register *register
+	validate Validator
 }
 
 func (dcv *defaultCopyValue) BooleanCopyValue(ctx context.Context, src, dst reflect.Value) error {

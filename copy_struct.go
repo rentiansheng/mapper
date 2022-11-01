@@ -37,7 +37,8 @@ type structDescription struct {
 type structCache struct {
 	cache map[reflect.Type]*structDescription
 	sync.RWMutex
-	copyPrivate bool
+	copyPrivate    bool
+	validateStruct bool
 }
 
 func newStructCache() *structCache {
@@ -99,6 +100,12 @@ func (dcv *defaultCopyValue) StructCopyValue(ctx context.Context, src, dst refle
 			return err
 		}
 		if err := fn(ctx, srcItem, dstItem); err != nil {
+			return err
+		}
+
+	}
+	if dcv.validate != nil {
+		if err := dcv.validate.Struct(dst.Interface()); err != nil {
 			return err
 		}
 

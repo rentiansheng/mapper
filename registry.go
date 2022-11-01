@@ -97,8 +97,8 @@ func (dcv *defaultCopyValue) buildDefaultRegistry() {
 }
 
 var (
-	Register     = defaultCopyValueHanler.Register
-	RegisterKind = defaultCopyValueHanler.RegistryKind
+	Register     = defaultCopyValueHandler.Register
+	RegisterKind = defaultCopyValueHandler.RegistryKind
 )
 
 // ErrNoCopyValue is returned when there wasn't an copy available for a type.

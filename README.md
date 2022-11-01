@@ -21,7 +21,7 @@ import (
 )
 
 type testCopyStructInline struct {
-	A string
+	A string `validate:"required,max=5"
 	b string
 }
 
@@ -68,7 +68,14 @@ func main() {
 	// test deep copy
 	src.Strings[0] = "change item"
 	fmt.Println("struct.Strings deep copy test       ", src.Strings[0] != dst.Strings[0])
+    //
+	m := mapper.NewMapper(OptionValidateStruct().CopyPrivate())
 
+	result := dstStruct{}
+
+	err := m.Mapper(ctx, src, &result)
+    fmt.Println(err)
+	//
 }
 ```
 
@@ -87,3 +94,4 @@ func main() {
 - []*Type to []Type automatic mapping
 - []Type to []*Type  automatic mapping
 - copy use struct tag alias name，`json:"aa,copy=bb"`
+- validate data by struct tag role [rule detail go-playground/validator](https://github.com/go-playground/validator#baked-in-validations)

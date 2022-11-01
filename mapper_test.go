@@ -132,3 +132,28 @@ func TestPtrStructToStructMapper(t *testing.T) {
 	require.Equal(t, src[0].inlineStruct, result[0].inlineStruct)
 
 }
+
+func TestValidateStructMapper(t *testing.T) {
+	type inlineStruct struct {
+		A string `validate:"required,max=5"`
+		b string `validate:"required"`
+	}
+
+	// tst copy []struct to []*struct
+	type dstStruct struct {
+		inlineStruct
+	}
+	src :=
+		&dstStruct{
+			inlineStruct{
+				A: "inline a",
+				b: "inline b private field",
+			},
+		}
+	m := NewMapper(OptionValidateStruct().CopyPrivate())
+
+	result := dstStruct{}
+
+	err := m.Mapper(ctx, src, &result)
+	require.Equal(t, "Key: 'dstStruct.inlineStruct.A' Error:Field validation for 'A' failed on the 'max' tag", err.Error())
+}

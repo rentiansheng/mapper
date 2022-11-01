@@ -20,7 +20,7 @@ import (
 )
 
 type testCopyStructInline struct {
-	A string
+	A string  `validate:"required,max=5"
 	b string
 }
 
@@ -67,7 +67,14 @@ func main() {
 	// test deep copy
 	src.Strings[0] = "change item"
 	fmt.Println("struct.Strings deep copy test       ", src.Strings[0] != dst.Strings[0])
+	//
+	m := mapper.NewMapper(OptionValidateStruct().CopyPrivate())
 
+	result := dstStruct{}
+
+	err := m.Mapper(ctx, src, &result)
+	fmt.Println(err)
+	//
 }
 
 ```
@@ -87,4 +94,5 @@ func main() {
 - 实现[]*Type to []Type
 - 实现[]Type to []*Type 
 - 支持struct tag 别名拷贝，`json:"aa,copy=bb"`
+- 支持对struct 按照tag 规则校验 [参考go-playground/validator](https://github.com/go-playground/validator#baked-in-validations)
 
