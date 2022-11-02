@@ -40,5 +40,5 @@ example: [example/struct_tag/main.go](/example/base/main.go)
 -  any data type to interface data type
 - []*Type to []Type automatic mapping
 - []Type to []*Type  automatic mapping
-- copy use struct tag alias name，`json:"aa,copy=bb"`
+- copy struct support multiple tag name,(copy,json,gorm)，
 - validate data by struct tag role [rule detail go-playground/validator](https://github.com/go-playground/validator#baked-in-validations)

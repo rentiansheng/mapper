@@ -36,6 +36,7 @@ example: [example/struct_tag/main.go](/example/base/main.go)
 - 支持 数据 to interface 自动映射
 - 实现[]*Type to []Type
 - 实现[]Type to []*Type 
-- 支持struct tag 别名拷贝，`json:"aa,copy=bb"`
+- 支持struct 多种类型tag。(copy,json,gorm)，
+
 - 支持对struct 按照tag 规则校验 [参考go-playground/validator](https://github.com/go-playground/validator#baked-in-validations)
 
