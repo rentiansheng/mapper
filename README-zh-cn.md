@@ -9,6 +9,36 @@ go get -u github.com/rentiansheng/mapper
 
 ### Getting Started
 
+#### struct tag 顺序
+tag order: copy > json > gorm
+``` go
+type Copy struct {
+    F string `json:"json_f"  gorm:"column:gorm_f" copy:"copy_f"`
+}
+type CopyJSON struct {
+    F string `json:"json_f,copy=json_copy_f"  gorm:"column:gorm_f"`
+}
+type JSON struct {
+    F string `json:"json_f"  gorm:"column:gorm_f"`
+}
+type   GORM struct {
+    F string `gorm:"column:gorm_f"`
+}
+type RawField struct {
+    F string 
+}
+copy to map result :
+struct Copy to map[string]string result:              {"copy_f":xxxx}
+struct CopyJSON to map[string]string result:    {"json_copy_f":xxxx}
+struct JSON to map[string]string result:            {"json_f":xxxx}
+struct GORM to map[string]string result:           {"gorm_f":xxxx}
+struct RawField to map[string]string result:     {"F":xxxx}
+```
+
+
+
+
+#### example
 ```go
 package main
 
