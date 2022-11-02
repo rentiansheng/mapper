@@ -144,12 +144,10 @@ func TestPtrIntSliceCopyValue(t *testing.T) {
 	result := []*int{}
 	srcValue := []int{1, 2, 3, 4, 5, 6}
 	src, dst := reflect.ValueOf(srcValue), reflect.ValueOf(&result)
-	if err := defaultCopy.SliceCopyValue(ctx, src, dst.Elem()); err != nil {
-		// TODO: wait implement
-		require.Equal(t, "cannot copy slice from []int into []*int", err.Error())
-	}
-	// TODO: wait implement
-	// require.Equal(t, srcValue, *result, "result not equal src value")
+	err := defaultCopy.SliceCopyValue(ctx, src, dst.Elem())
+	require.NoError(t, err)
+	require.Equal(t, len(srcValue), len(result), "result not equal src value")
+	require.Equal(t, srcValue[0], *result[0], "result not equal src value")
 
 }
 
@@ -157,12 +155,10 @@ func TestPtrIntNilSliceCopyValue(t *testing.T) {
 	var result []*int = nil
 	srcValue := []int{1, 2, 3, 4, 5, 6}
 	src, dst := reflect.ValueOf(srcValue), reflect.ValueOf(&result)
-	if err := defaultCopy.SliceCopyValue(ctx, src, dst.Elem()); err != nil {
-		// TODO: wait implement
-		require.Equal(t, "cannot copy slice from []int into []*int", err.Error())
-	}
-	// TODO: wait implement
-	// require.Equal(t, srcValue, result, "result not equal src value")
+	err := defaultCopy.SliceCopyValue(ctx, src, dst.Elem())
+	require.NoError(t, err)
+	require.Equal(t, len(srcValue), len(result), "result not equal src value")
+	require.Equal(t, srcValue[0], *result[0], "result not equal src value")
 
 }
 

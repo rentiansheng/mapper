@@ -157,3 +157,54 @@ func TestValidateStructMapper(t *testing.T) {
 	err := m.Mapper(ctx, src, &result)
 	require.Equal(t, "Key: 'dstStruct.inlineStruct.A' Error:Field validation for 'A' failed on the 'max' tag", err.Error())
 }
+
+func TestTagStructMapper(t *testing.T) {
+	type Copy struct {
+		F string `json:"json_f"  gorm:"column:gorm_f" copy:"copy_f"`
+	}
+	type CopyJSON struct {
+		F string `json:"json_f,copy=json_copy_f"  gorm:"column:gorm_f"`
+	}
+	type JSON struct {
+		F string `json:"json_f"  gorm:"column:gorm_f"`
+	}
+	type GORM struct {
+		F string `gorm:"column:gorm_f"`
+	}
+	type RawField struct {
+		F string
+	}
+	src := map[string]string{
+		"copy_f":      "copy_f",
+		"json_copy_f": "json_copy_f",
+		"json_f":      "json_f",
+		"gorm_f":      "gorm_f",
+		"F":           "F",
+	}
+
+	resultCopy := Copy{}
+	err := Mapper(ctx, src, &resultCopy)
+	require.NoError(t, err)
+	require.Equal(t, "copy_f", resultCopy.F)
+
+	resultJSONCopy := CopyJSON{}
+	err = Mapper(ctx, src, &resultJSONCopy)
+	require.NoError(t, err)
+	require.Equal(t, "json_copy_f", resultJSONCopy.F)
+
+	resultJSON := JSON{}
+	err = Mapper(ctx, src, &resultJSON)
+	require.NoError(t, err)
+	require.Equal(t, "json_f", resultJSON.F)
+
+	resultGORM := GORM{}
+	err = Mapper(ctx, src, &resultGORM)
+	require.NoError(t, err)
+	require.Equal(t, "gorm_f", resultGORM.F)
+
+	resultRawField := RawField{}
+	err = Mapper(ctx, src, &resultRawField)
+	require.NoError(t, err)
+	require.Equal(t, "F", resultRawField.F)
+
+}

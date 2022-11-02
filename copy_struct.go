@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"strings"
 	"sync"
 	"unsafe"
 )
@@ -16,9 +15,9 @@ import (
 
 ***************************/
 var (
-	tagName                = "json"
-	omitTagValue           = "-"
-	omitTagValueCopyPrefix = "copy"
+	tagName            = "json"
+	excludeTagValue    = "-"
+	copyValueTagPrefix = "copy"
 )
 
 type fieldDescription struct {
@@ -208,7 +207,6 @@ func (dcv *defaultCopyValue) describeStruct(ctx context.Context, t reflect.Type)
 	for i := 0; i < numFields; i++ {
 		sf := t.Field(i)
 
-		tags := strings.Split(sf.Tag.Get(tagName), ",")
 		desc := &fieldDescription{
 			fieldName: sf.Name,
 			name:      sf.Name,
@@ -217,6 +215,7 @@ func (dcv *defaultCopyValue) describeStruct(ctx context.Context, t reflect.Type)
 		if !sf.IsExported() {
 			desc.private = true
 		}
+
 		if sf.Anonymous {
 			inlineSF, err := dcv.describeStruct(ctx, sf.Type)
 			if err != nil {
@@ -230,23 +229,13 @@ func (dcv *defaultCopyValue) describeStruct(ctx context.Context, t reflect.Type)
 			}
 			continue
 		}
-		for idx := range tags {
-			tags[idx] = strings.TrimSpace(tags[idx])
-		}
-		if tags[0] != "" {
-			desc.name = tags[0]
-		}
-		if strings.TrimSpace(desc.name) == omitTagValue {
-			desc.omitEmpty = true
-		}
-		for _, item := range tags[0:] {
-			if itemVals := strings.Split(item, "="); strings.TrimSpace(itemVals[0]) == omitTagValueCopyPrefix {
-				desc.omitEmpty = false
-				if len(itemVals) > 1 && itemVals[1] != "" {
-					desc.name = itemVals[1]
-				}
+		for _, fn := range tagHandleFnList {
+			if name := fn.newFn(sf.Tag.Get(fn.tagName)).Name(); name != "" {
+				desc.name = name
+				break
 			}
 		}
+
 		if _, exists := sd.fm[desc.name]; exists {
 			return nil, fmt.Errorf("(struct %s) duplicated key %s", t.String(), desc.name)
 		}
