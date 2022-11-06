@@ -2,6 +2,7 @@ package mapper
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
@@ -427,4 +428,22 @@ func TestStructToMapMapCopyValue(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, srcValue.A, resultStrStr["A"], "result not equal src value")
 	require.Equal(t, srcValue.b, resultStrStr["b"], "result not equal src value")
+}
+
+func TestJSONNumberCopyValue(t *testing.T) {
+	jsonNumber := reflect.ValueOf(json.Number("413"))
+	i64 := int64(0)
+	ui64, f := uint64(0), float64(0)
+	err := defaultCopy.IntCopyValue(ctx, jsonNumber, reflect.ValueOf(&i64).Elem())
+	require.NoError(t, err)
+	require.Equal(t, int64(413), i64, "json.Number to int64")
+
+	err = defaultCopy.UintCopyValue(ctx, jsonNumber, reflect.ValueOf(&ui64).Elem())
+	require.NoError(t, err)
+	require.Equal(t, uint64(413), ui64, "json.Number to uint64")
+
+	err = defaultCopy.FloatCopyValue(ctx, jsonNumber, reflect.ValueOf(&f).Elem())
+	require.NoError(t, err)
+	require.Equal(t, float64(413), f, "json.Number to float")
+
 }

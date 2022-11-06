@@ -2,10 +2,12 @@ package mapper
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/rentiansheng/mapper/mtype"
 	"math"
 	"reflect"
+	"strconv"
 )
 
 /***************************
@@ -40,7 +42,7 @@ func (dcv *defaultCopyValue) BooleanCopyValue(ctx context.Context, src, dst refl
 		return CopyValueError{Name: "BooleanCopyValue", Kinds: []reflect.Kind{reflect.Bool}, Received: dst}
 	}
 
-	src = skipPtrElem(src)
+	src = skipElem(src)
 	if src.Kind() != dst.Kind() {
 		return fmt.Errorf("cannot copy %v into a boolean", src.Type())
 	}
@@ -58,7 +60,7 @@ func (dcv *defaultCopyValue) IntCopyValue(ctx context.Context, src, dst reflect.
 		}
 	}
 
-	src = skipPtrElem(src)
+	src = skipElem(src)
 	var i64 int64
 	switch src.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -70,7 +72,19 @@ func (dcv *defaultCopyValue) IntCopyValue(ctx context.Context, src, dst reflect.
 		}
 		i64 = int64(f64)
 	default:
-		return fmt.Errorf("cannot copy %v into an integer type", src.Type())
+		switch src.Type() {
+		case mtype.JSONNumber:
+			jsonNumber := src.Interface().(json.Number)
+			var err error
+			i64, err = jsonNumber.Int64()
+			if err != nil {
+				return err
+			}
+
+		default:
+			return fmt.Errorf("cannot copy %v into an integer type", src.Type())
+		}
+
 	}
 	switch dst.Kind() {
 	case reflect.Int8:
@@ -111,7 +125,7 @@ func (dcv *defaultCopyValue) UintCopyValue(ctx context.Context, src, dst reflect
 		}
 	}
 
-	src = skipPtrElem(src)
+	src = skipElem(src)
 	var i64 uint64
 	switch src.Kind() {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
@@ -123,7 +137,18 @@ func (dcv *defaultCopyValue) UintCopyValue(ctx context.Context, src, dst reflect
 		}
 		i64 = uint64(f64)
 	default:
-		return fmt.Errorf("cannot copy %v into an unsigned integer type", src.Type())
+		switch src.Type() {
+		case mtype.JSONNumber:
+			jsonNumber := src.Interface().(json.Number)
+			var err error
+			i64, err = strconv.ParseUint(string(jsonNumber), 10, 64)
+			if err != nil {
+				return err
+			}
+
+		default:
+			return fmt.Errorf("cannot copy %v into an unsigned integer type", src.Type())
+		}
 	}
 	switch dst.Kind() {
 	case reflect.Uint8:
@@ -161,7 +186,7 @@ func (dcv *defaultCopyValue) FloatCopyValue(ctx context.Context, src, dst reflec
 		return CopyValueError{Name: "FloatCopyValue", Kinds: []reflect.Kind{reflect.Float32, reflect.Float64}, Received: dst}
 	}
 
-	src = skipPtrElem(src)
+	src = skipElem(src)
 	var f float64
 	switch src.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -171,11 +196,22 @@ func (dcv *defaultCopyValue) FloatCopyValue(ctx context.Context, src, dst reflec
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		f = float64(src.Uint())
 	default:
-		return CopyValueError{
-			Name: "FloatCopyValue",
-			Kinds: []reflect.Kind{reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint,
-				reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Float32, reflect.Float64},
-			Received: dst,
+		switch src.Type() {
+		case mtype.JSONNumber:
+			jsonNumber := src.Interface().(json.Number)
+			var err error
+			f, err = jsonNumber.Float64()
+			if err != nil {
+				return err
+			}
+
+		default:
+			return CopyValueError{
+				Name: "FloatCopyValue",
+				Kinds: []reflect.Kind{reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint,
+					reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Float32, reflect.Float64},
+				Received: dst,
+			}
 		}
 	}
 
@@ -198,7 +234,7 @@ func (dcv *defaultCopyValue) StringCopyValue(ctx context.Context, src, dst refle
 		return CopyValueError{Name: "StringCopyValue", Kinds: []reflect.Kind{reflect.String}, Received: dst}
 	}
 
-	src = skipPtrElem(src)
+	src = skipElem(src)
 	var str string
 	switch src.Kind() {
 	case reflect.String:
@@ -214,82 +250,6 @@ func (dcv *defaultCopyValue) StringCopyValue(ctx context.Context, src, dst refle
 	}
 
 	dst.SetString(str)
-	return nil
-}
-
-func (dcv *defaultCopyValue) SliceCopyValue(ctx context.Context, src, dst reflect.Value) error {
-	if !dst.CanSet() || dst.Kind() != reflect.Slice {
-		return CopyValueError{Name: "SliceCopyValue", Kinds: []reflect.Kind{reflect.Slice}, Received: dst}
-	}
-
-	src = skipPtrElem(src)
-	switch src.Kind() {
-	case reflect.Slice:
-		dstKind := dst.Type().Elem().Kind()
-		dstElem := src.Type().Elem()
-		if (dstElem.Kind() != dstKind) &&
-			(dstElem.Kind() == reflect.Ptr && dstElem.Elem().Kind() != dstKind) {
-			// not support copy []*int to []int
-			// not support copy []int to []*int
-			return fmt.Errorf("cannot copy slice from %s into %s", src.Type(), dst.Type())
-		}
-	default:
-		return fmt.Errorf("cannot copy %v into a slice", src.Type())
-	}
-
-	if dst.IsZero() {
-		dst.Set(reflect.MakeSlice(dst.Type(), 0, src.Len()))
-	}
-	typ := dst.Type().Elem()
-	items := make([]reflect.Value, 0, src.Len())
-	for i := 0; i < src.Len(); i++ {
-		itemDst := reflect.New(typ).Elem()
-		fn, err := dcv.lookupCopyValue(itemDst)
-		if err != nil {
-			return err
-		}
-		if err := fn(ctx, src.Index(i), itemDst); err != nil {
-			return err
-		}
-		items = append(items, itemDst)
-	}
-	dst.SetLen(0)
-	dst.Set(reflect.Append(dst, items...))
-	return nil
-}
-
-func (dcv *defaultCopyValue) ArrayCopyValue(ctx context.Context, src, dst reflect.Value) error {
-	if !dst.CanSet() || dst.Kind() != reflect.Array {
-		return CopyValueError{Name: "SliceCopyValue", Kinds: []reflect.Kind{reflect.Slice}, Received: dst}
-	}
-
-	if src.Len() > dst.Len() {
-		return fmt.Errorf("more elements returned in array than can fit inside %s", dst.Type())
-	}
-
-	switch src.Kind() {
-	case reflect.Array:
-		if src.Elem().Kind() != dst.Elem().Kind() {
-			return fmt.Errorf("cannot decode array into %s", src.Type())
-		}
-	default:
-		return fmt.Errorf("cannot copy %v into a array", src.Type())
-	}
-
-	typ := dst.Elem().Type()
-	// TODO: string to bytes
-	for i := 0; i < src.Len(); i++ {
-		fn, err := dcv.lookupCopyValue(dst.Elem())
-		if err != nil {
-			return err
-		}
-		itemDst := reflect.New(typ)
-		if err := fn(ctx, src.Index(i), itemDst); err != nil {
-			return err
-		}
-		dst.Index(i).Set(itemDst)
-
-	}
 	return nil
 }
 
@@ -356,8 +316,11 @@ func (dcv *defaultCopyValue) PtrCopyValue(ctx context.Context, src, dst reflect.
 	return fn(ctx, src, dst.Elem())
 }
 
-func skipPtrElem(elem reflect.Value) reflect.Value {
+func skipElem(elem reflect.Value) reflect.Value {
 	for elem.Kind() == reflect.Ptr {
+		elem = elem.Elem()
+	}
+	for elem.Kind() == reflect.Interface {
 		elem = elem.Elem()
 	}
 	return elem

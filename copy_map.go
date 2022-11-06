@@ -38,8 +38,8 @@ func (dcv *defaultCopyValue) MapCopyValue(ctx context.Context, src, dst reflect.
 		dst.Set(reflect.MakeMap(dst.Type()))
 	}
 
-	keyType := src.Type().Key()
-	valueType := src.Type().Elem()
+	keyType := dst.Type().Key()
+	valueType := dst.Type().Elem()
 	fnKey, err := dcv.lookupCopyValue(reflect.New(keyType).Elem())
 	if err != nil {
 		return err

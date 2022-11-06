@@ -52,7 +52,7 @@ func (dcv *defaultCopyValue) StructCopyValue(ctx context.Context, src, dst refle
 		return CopyValueError{Name: "copyStruct.StructCopyValue", Kinds: []reflect.Kind{reflect.Struct}, Received: dst}
 	}
 
-	src = skipPtrElem(src)
+	src = skipElem(src)
 	switch src.Kind() {
 	case reflect.Struct:
 	case reflect.Map:
@@ -122,7 +122,7 @@ func (dcv *defaultCopyValue) MapToStructCopyValue(ctx context.Context, src, dst 
 		return CopyValueError{Name: "copyStruct.MapToStructCopyValue", Kinds: []reflect.Kind{reflect.Map}, Received: dst}
 	}
 
-	src = skipPtrElem(src)
+	src = skipElem(src)
 	if dst.IsZero() {
 		dst.Set(reflect.New(dst.Type()).Elem())
 	}
@@ -164,7 +164,7 @@ func (dcv *defaultCopyValue) StructToMapCopyValue(ctx context.Context, src, dst 
 		return CopyValueError{Name: "copyStruct.CopyStructMapValue", Kinds: []reflect.Kind{reflect.Struct}, Received: dst}
 	}
 
-	src = skipPtrElem(src)
+	src = skipElem(src)
 	if src.Kind() != reflect.Struct {
 		return fmt.Errorf("cannot copy %v into struct type", src.Type())
 	}

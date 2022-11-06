@@ -1,6 +1,7 @@
 package mtype
 
 import (
+	"encoding/json"
 	"reflect"
 	"time"
 )
@@ -33,3 +34,4 @@ var Uint8 = reflect.TypeOf(uint8(0))
 var Uint16 = reflect.TypeOf(uint16(0))
 var Uint32 = reflect.TypeOf(uint32(0))
 var Uint64 = reflect.TypeOf(uint64(0))
+var JSONNumber = reflect.TypeOf(json.Number(""))
