@@ -65,6 +65,12 @@ func (dcv *defaultCopyValue) IntCopyValue(ctx context.Context, src, dst reflect.
 	switch src.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		i64 = src.Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		ui64 := src.Uint()
+		if ui64 > math.MaxInt64 {
+			return fmt.Errorf("%v overflows int64", ui64)
+		}
+		i64 = int64(ui64)
 	case reflect.Float32, reflect.Float64:
 		f64 := src.Float()
 		if f64 < float64(math.MinInt64) || f64 > float64(math.MaxInt64) {
@@ -130,6 +136,12 @@ func (dcv *defaultCopyValue) UintCopyValue(ctx context.Context, src, dst reflect
 	switch src.Kind() {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		i64 = src.Uint()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		tmpI64 := src.Int()
+		if tmpI64 < 0 {
+			return fmt.Errorf("%d overflows uint64", tmpI64)
+		}
+		i64 = uint64(tmpI64)
 	case reflect.Float32, reflect.Float64:
 		f64 := src.Float()
 		if f64 > float64(math.MaxUint64) {
@@ -155,7 +167,7 @@ func (dcv *defaultCopyValue) UintCopyValue(ctx context.Context, src, dst reflect
 		if i64 > math.MaxUint8 {
 			return fmt.Errorf("%d overflows uint8", i64)
 		}
-	case reflect.Int16:
+	case reflect.Uint16:
 		if i64 > math.MaxUint16 {
 			return fmt.Errorf("%d overflows uint16", i64)
 		}
@@ -317,11 +329,8 @@ func (dcv *defaultCopyValue) PtrCopyValue(ctx context.Context, src, dst reflect.
 }
 
 func skipElem(elem reflect.Value) reflect.Value {
-	for elem.Kind() == reflect.Ptr {
-		elem = elem.Elem()
+	for ; elem.Kind() == reflect.Ptr || elem.Kind() == reflect.Interface; elem = elem.Elem() {
 	}
-	for elem.Kind() == reflect.Interface {
-		elem = elem.Elem()
-	}
+
 	return elem
 }

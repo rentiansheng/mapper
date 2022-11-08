@@ -37,6 +37,6 @@ example: [example/struct_tag/main.go](/example/base/main.go)
 - 实现[]*Type to []Type
 - 实现[]Type to []*Type 
 - 支持struct 多种类型tag。(copy,json,gorm)，
-
 - 支持对struct 按照tag 规则校验 [参考go-playground/validator](https://github.com/go-playground/validator#baked-in-validations)
-
+- 支持 integer 和 unsigned integer 自动映射
+- 支持 json.Number to integer 自动映射

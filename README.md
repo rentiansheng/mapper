@@ -42,3 +42,5 @@ example: [example/struct_tag/main.go](/example/base/main.go)
 - []Type to []*Type  automatic mapping
 - copy struct support multiple tag name,(copy,json,gorm)，
 - validate data by struct tag role [rule detail go-playground/validator](https://github.com/go-playground/validator#baked-in-validations)
+- automatic mapping integer and unsigned integer
+- automatic mapping json.Number to integer 

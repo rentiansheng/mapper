@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -445,5 +447,105 @@ func TestJSONNumberCopyValue(t *testing.T) {
 	err = defaultCopy.FloatCopyValue(ctx, jsonNumber, reflect.ValueOf(&f).Elem())
 	require.NoError(t, err)
 	require.Equal(t, float64(413), f, "json.Number to float")
+
+}
+
+func TestMutualConversionIntegerToUintCopyValue(t *testing.T) {
+	suits := []struct {
+		src               interface{}
+		dst               interface{}
+		errContainContent string
+		tips              string
+	}{
+		{src: int(1), dst: uint(0), tips: "int to uint"},
+		{src: int(1), dst: uint8(0), tips: "int to uint8"},
+		{src: int(1), dst: uint16(0), tips: "int to uint16"},
+		{src: int(1), dst: uint32(0), tips: "int to uint32"},
+		{src: int(1), dst: uint64(0), tips: "int to uint64"},
+
+		{src: int8(1), dst: uint8(0), tips: "int to uint8"},
+		{src: int16(1), dst: uint16(0), tips: "int to uint16"},
+		{src: int32(1), dst: uint32(0), tips: "int to uint32"},
+		{src: int64(1), dst: uint64(0), tips: "int to uint64"},
+
+		// test overflow
+		{src: int(-1), dst: uint(0), tips: "test overflows int to uint", errContainContent: "overflows"},
+		{src: int(-1), dst: uint8(0), tips: "test overflows int to uint8", errContainContent: "overflows"},
+		{src: int(-1), dst: uint16(0), tips: "test overflows int to uint16", errContainContent: "overflows"},
+		{src: int(-1), dst: uint32(0), tips: "test overflows int to uint32", errContainContent: "overflows"},
+		{src: int(-1), dst: uint64(0), tips: "test overflows int to uint64", errContainContent: "overflows"},
+	}
+
+	for idx, suit := range suits {
+		tips := fmt.Sprintf("index: %v, tip: %s", idx, suit.tips)
+		dst := reflect.ValueOf(&suit.dst).Elem()
+		dstVal := reflect.New(dst.Elem().Type())
+		err := defaultCopy.UintCopyValue(ctx, reflect.ValueOf(suit.src), dstVal.Elem())
+		if suit.errContainContent == "" {
+			require.NoError(t, err)
+			require.Equal(t, fmt.Sprintf("%v", suit.src), fmt.Sprintf("%v", dstVal.Elem().Interface()), tips)
+		} else {
+			if err == nil {
+				t.Errorf(tips + " error")
+
+			} else {
+				if !strings.Contains(err.Error(), suit.errContainContent) {
+					t.Errorf("tips: %s, err:%s", tips, err.Error())
+				}
+			}
+
+		}
+	}
+
+}
+
+func TestMutualConversionUnsignedToIntCopyValue(t *testing.T) {
+	suits := []struct {
+		src               interface{}
+		dst               interface{}
+		errContainContent string
+		tips              string
+	}{
+
+		{src: uint(1), dst: int(0), tips: "uint to int"},
+		{src: uint(1), dst: int8(0), tips: "uint to int8"},
+		{src: uint(1), dst: int16(0), tips: "uint to int16"},
+		{src: uint(1), dst: int32(0), tips: "uint to int32"},
+		{src: uint(1), dst: int64(0), tips: "uint to int64"},
+
+		{src: uint8(1), dst: int(0), tips: "uint to int"},
+		{src: uint16(1), dst: int8(0), tips: "uint to int8"},
+		{src: uint32(1), dst: int16(0), tips: "uint to int16"},
+		{src: uint64(1), dst: int32(0), tips: "uint to int32"},
+
+		// test overflows
+
+		{src: uint(math.MaxUint64), dst: int(0), tips: "test overflows uint to int", errContainContent: "overflows"},
+		{src: uint(math.MaxUint8), dst: int8(0), tips: "test overflows uint to int8", errContainContent: "overflows"},
+		{src: uint(math.MaxUint16), dst: int16(0), tips: "test overflows uint to int16", errContainContent: "overflows"},
+		{src: uint(math.MaxUint32), dst: int32(0), tips: "test overflows uint to int32", errContainContent: "overflows"},
+		{src: uint(math.MaxUint64), dst: int64(0), tips: "test overflows uint to int64", errContainContent: "overflows"},
+	}
+
+	for idx, suit := range suits {
+		tips := fmt.Sprintf("index: %v, tip: %s", idx, suit.tips)
+		dst := reflect.ValueOf(&suit.dst).Elem()
+		dstVal := reflect.New(dst.Elem().Type())
+		err := defaultCopy.IntCopyValue(ctx, reflect.ValueOf(suit.src), dstVal.Elem())
+		if suit.errContainContent == "" {
+			require.NoError(t, err)
+			require.Equal(t, fmt.Sprintf("%v", suit.src), fmt.Sprintf("%v", dstVal.Elem().Interface()), tips)
+		} else {
+			if err == nil {
+				t.Errorf(tips + " error")
+
+			} else {
+				if !strings.Contains(err.Error(), suit.errContainContent) {
+					t.Errorf("tips: %s, err:%s", tips, err.Error())
+				}
+			}
+
+		}
+	}
 
 }
