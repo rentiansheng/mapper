@@ -18,9 +18,15 @@ func (dcv *defaultCopyValue) InterfaceCopyValue(ctx context.Context, src, dst re
 	}
 
 	src = skipElem(src)
-	for src.Kind() == reflect.Interface {
-		src = src.Elem()
+	// 特殊处理
+	if src.Kind() == reflect.Invalid {
+		if dst.Kind() != reflect.Invalid {
+			// 元数据没有初始化，情况dst
+			dst.Set(reflect.New(dst.Type()).Elem())
+		}
+		return nil
 	}
+
 	tmpVal := reflect.New(src.Type()).Elem()
 	fn, err := dcv.lookupCopyValue(src)
 	if err != nil {

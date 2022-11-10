@@ -549,3 +549,16 @@ func TestMutualConversionUnsignedToIntCopyValue(t *testing.T) {
 	}
 
 }
+
+func TestNilInterfaceToInterfaceCopyValue(t *testing.T) {
+	var src interface{}
+	var dst interface{}
+	err := defaultCopy.InterfaceCopyValue(ctx, reflect.ValueOf(src), reflect.ValueOf(&dst).Elem())
+	require.NoError(t, err, "test copy nil to nil ")
+	require.Equal(t, nil, dst, "test copy nil to nil ")
+
+	dst = "test"
+	err = defaultCopy.InterfaceCopyValue(ctx, reflect.ValueOf(src), reflect.ValueOf(&dst).Elem())
+	require.NoError(t, err, "test copy nil to nil ")
+	require.Equal(t, nil, dst, "test copy nil to nil ")
+}
