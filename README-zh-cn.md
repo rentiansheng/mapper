@@ -16,11 +16,14 @@ example: [example/struct_tag/main.go](/example/base/main.go)
 
 #### example
 
-| name             | code                                                      |
-|------------------|-----------------------------------------------------------|
-| base             | [example/base/main.go](/example/base/main.go)             |
-| struct tag order | [example/struct_tag/main.go](/example/struct_tag/main.go) |
-| struct validate  | [example/validator/main.go](/example/validator/main.go)   |
+| name                                         | code                                                      |
+|----------------------------------------------|-----------------------------------------------------------|
+| base                                         | [example/base/main.go](/example/base/main.go)             |
+| struct tag order                             | [example/struct_tag/main.go](/example/struct_tag/main.go) |
+| struct validate                              | [example/validator/main.go](/example/validator/main.go)   |
+| extractor value from map or struct by field  | [example/extra/extra.go](example/extra/extra.go)          |                               |                                                        |
+| extractor keys from map                      | [example/extra/extra.go](example/extra/extra.go)          |                              |                                                        |
+
 
 
 ### Features
@@ -40,3 +43,5 @@ example: [example/struct_tag/main.go](/example/base/main.go)
 - 支持对struct 按照tag 规则校验 [参考go-playground/validator](https://github.com/go-playground/validator#baked-in-validations)
 - 支持 integer 和 unsigned integer 自动映射
 - 支持 json.Number to integer 自动映射
+- 从map,struct 根据field 获取字段值 到数组中
+- 从 map中获取  keys/values 到数组中

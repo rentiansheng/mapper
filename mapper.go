@@ -31,6 +31,19 @@ func AllMapper(ctx context.Context, src, dst interface{}) error {
 	return mapperHandler(ctx, allMapperCV, src, dst)
 }
 
+func ObjectsField(ctx context.Context, field, src, dst interface{}) error {
+	return mapperCV.ToSliceCopyValue(ctx, reflect.ValueOf(field), reflect.ValueOf(src), reflect.ValueOf(dst).Elem())
+}
+
+func MapKeys(ctx context.Context, src, dst interface{}) error {
+	return mapperCV.MapKeyToSliceCopyValue(ctx, reflect.ValueOf(src), reflect.ValueOf(dst).Elem())
+}
+
+func MapValues(ctx context.Context, src, dst interface{}) error {
+	return mapperCV.MapValueToSliceCopyValue(ctx, reflect.ValueOf(src), reflect.ValueOf(dst).Elem())
+
+}
+
 func mapperHandler(ctx context.Context, dcv *defaultCopyValue, src, dst interface{}) error {
 	dstV := reflect.ValueOf(dst).Elem()
 	if !dstV.CanSet() {

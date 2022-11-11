@@ -2,8 +2,10 @@ package mapper
 
 import (
 	"context"
-	"github.com/stretchr/testify/require"
+	"sort"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 /***************************
@@ -206,5 +208,37 @@ func TestTagStructMapper(t *testing.T) {
 	err = Mapper(ctx, src, &resultRawField)
 	require.NoError(t, err)
 	require.Equal(t, "F", resultRawField.F)
+
+}
+
+func TestExtraObjectField(t *testing.T) {
+	src := []map[string]interface{}{
+		{"field": 1, "field2": "field2"},
+		{"field": "str", "field2": "field2"},
+	}
+	dstField := make([]interface{}, 0)
+	err := ObjectsField(ctx, "field", src, &dstField)
+	require.NoError(t, err, "TestExtraObjectField field")
+	require.Equal(t, []interface{}{1, "str"}, dstField, "TestExtraObjectField field")
+
+	dstField2 := make([]interface{}, 0)
+	err = ObjectsField(ctx, "field2", src, &dstField2)
+	require.NoError(t, err, "TestExtraObjectField field")
+	require.Equal(t, []interface{}{"field2", "field2"}, dstField2, "TestExtraObjectField field2")
+
+}
+
+func TestExtraObjectKeyValue(t *testing.T) {
+	src := map[int]int{1: 1, 2: 2}
+	keyDst, valueDst := make([]int, 0), make([]int, 0)
+	err := MapKeys(ctx, src, &keyDst)
+	require.NoError(t, err, "TestExtraObjectKeyValue field")
+	sort.Ints(keyDst)
+	require.Equal(t, []int{1, 2}, keyDst, "TestExtraObjectKeyValue key")
+
+	err = MapValues(ctx, src, &valueDst)
+	require.NoError(t, err, "TestExtraObjectKeyValue field")
+	sort.Ints(valueDst)
+	require.Equal(t, []int{1, 2}, valueDst, "TestExtraObjectKeyValue value")
 
 }
