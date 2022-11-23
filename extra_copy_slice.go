@@ -60,14 +60,23 @@ func (dcv *defaultCopyValue) SliceMapToSliceCopyValue(ctx context.Context, field
 	if err != nil {
 		return err
 	}
+	fieldNameI := fieldName.Interface()
 	for idx := 0; idx < src.Len(); idx++ {
 		srcItem := src.Index(idx)
-		srcItemValue := srcItem.MapIndex(fieldName)
-		dstItem := reflect.New(typ).Elem()
-		if err := fn(ctx, srcItemValue, dstItem); err != nil {
-			return err
+		srcMapKeys := srcItem.MapKeys()
+		// skip not key elem
+		for _, srcMapKey := range srcMapKeys {
+			if srcMapKey.Interface() == fieldNameI {
+				srcItemValue := srcItem.MapIndex(fieldName)
+				dstItem := reflect.New(typ).Elem()
+				if err := fn(ctx, srcItemValue, dstItem); err != nil {
+					return err
+				}
+				items = append(items, dstItem)
+				break
+			}
 		}
-		items = append(items, dstItem)
+
 	}
 	dst.SetLen(0)
 	dst.Set(reflect.Append(dst, items...))
