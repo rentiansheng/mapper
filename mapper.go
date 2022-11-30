@@ -2,6 +2,7 @@ package mapper
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 )
 
@@ -44,11 +45,32 @@ func MapValues(ctx context.Context, src, dst interface{}) error {
 
 }
 
+func Chunk(ctx context.Context, src, dst interface{}, size int) error {
+	dstV := reflect.ValueOf(dst)
+	if dstV.Kind() != reflect.Ptr {
+		return fmt.Errorf("copy to object must be pointer")
+	}
+
+	dstV = dstV.Elem()
+	if !dstV.CanSet() {
+		return fmt.Errorf("copy to object must be can set")
+	}
+
+	srcV := reflect.ValueOf(src)
+
+	return mapperCV.SliceChunk(ctx, srcV, dstV, size)
+}
+
 func mapperHandler(ctx context.Context, dcv *defaultCopyValue, src, dst interface{}) error {
-	dstV := reflect.ValueOf(dst).Elem()
+	dstV := reflect.ValueOf(dst)
+	if dstV.Kind() != reflect.Ptr {
+		return fmt.Errorf("copy to object must be pointer")
+	}
+	dstV = dstV.Elem()
 	if !dstV.CanSet() {
 		return CopyValueError{Name: "mapper", Kinds: []reflect.Kind{reflect.Bool}, Received: dstV}
 	}
+
 	srcV := reflect.ValueOf(src)
 	fn, err := dcv.lookupCopyValue(dstV)
 	if err != nil {

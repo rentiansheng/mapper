@@ -217,3 +217,37 @@ func (dcv *defaultCopyValue) MapValueToSliceCopyValue(ctx context.Context, src, 
 
 	return nil
 }
+
+func (dcv *defaultCopyValue) SliceChunk(ctx context.Context, src, dst reflect.Value, size int) error {
+	if size <= 0 {
+		return fmt.Errorf("slice chunk parameter size must be > 0")
+	}
+	if !dst.CanSet() || dst.Kind() != reflect.Slice || dst.Type().Elem().Kind() != reflect.Slice {
+		return fmt.Errorf("slice chunk can only copy valid and settable from [][]*")
+	}
+	if dst.IsNil() {
+		dst.Set(reflect.New(dst.Type()).Elem())
+	}
+	sliceType := dst.Type().Elem()
+	dstValue := reflect.New(sliceType).Elem()
+	items, err := dcv.sliceCopyValue(ctx, src, dstValue)
+	if err != nil {
+		return err
+	}
+
+	var dstItems []reflect.Value
+	for idx := 0; idx < len(items); idx += size {
+		end := idx + size
+		dstItemPart := reflect.New(sliceType).Elem()
+		if end > len(items) {
+			dstItemPart.Set(reflect.Append(dstItemPart, items[idx:]...))
+		} else {
+			dstItemPart.Set(reflect.Append(dstItemPart, items[idx:end]...))
+		}
+		dstItems = append(dstItems, dstItemPart)
+	}
+	dst.SetLen(0)
+	dst.Set(reflect.Append(dst, dstItems...))
+
+	return nil
+}

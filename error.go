@@ -13,7 +13,7 @@ import (
 
 ***************************/
 
-// ValueDecoderError is an error returned from a ValueDecoder when the provided value can't be
+// CopyValueError is an error returned from a ValueDecoder when the provided value can't be
 // copy by the StructCopyValue.
 type CopyValueError struct {
 	Name     string
@@ -29,7 +29,7 @@ func (vde CopyValueError) Error() string {
 	}
 	for _, k := range vde.Kinds {
 		if k == reflect.Map {
-			typeKinds = append(typeKinds, "map[string]*")
+			typeKinds = append(typeKinds, "map[*]*")
 			continue
 		}
 		typeKinds = append(typeKinds, k.String())

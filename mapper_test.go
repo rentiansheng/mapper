@@ -242,3 +242,32 @@ func TestExtraObjectKeyValue(t *testing.T) {
 	require.Equal(t, []int{1, 2}, valueDst, "TestExtraObjectKeyValue value")
 
 }
+
+func TestChunk(t *testing.T) {
+	src := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	for size := 1; size < 20; size++ {
+		dst := make([][]int64, 0)
+		err := Chunk(ctx, src, &dst, size)
+		require.NoError(t, err, "TestChunk field")
+		l := (len(src) + size - 1) / size
+		require.Equal(t, l, len(dst), "size %v", size)
+		lastItemLen := len(src) % size
+		for idx := 0; idx < l; idx++ {
+			if idx == l-1 && lastItemLen > 0 {
+				require.Equal(t, lastItemLen, len(dst[idx]))
+			} else {
+				require.Equal(t, size, len(dst[idx]))
+
+			}
+		}
+	}
+
+	// test not can set
+	dst := make([][]int64, 0)
+	err := Chunk(ctx, src, dst, 1)
+	require.Error(t, err, "TestChunk not can set field")
+
+	// test not can set
+	err = Chunk(ctx, src, &dst, 0)
+	require.Error(t, err, "TestChunk size = 0field")
+}

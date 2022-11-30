@@ -14,23 +14,25 @@ import (
 ***************************/
 
 func (dcv *defaultCopyValue) SliceCopyValue(ctx context.Context, src, dst reflect.Value) error {
+	items, err := dcv.sliceCopyValue(ctx, src, dst)
+	if err != nil {
+		return nil
+	}
+	dst.SetLen(0)
+	dst.Set(reflect.Append(dst, items...))
+
+	return nil
+}
+
+func (dcv *defaultCopyValue) sliceCopyValue(ctx context.Context, src, dst reflect.Value) ([]reflect.Value, error) {
 	if !dst.CanSet() || dst.Kind() != reflect.Slice {
-		return CopyValueError{Name: "SliceCopyValue", Kinds: []reflect.Kind{reflect.Slice}, Received: dst}
+		return nil, CopyValueError{Name: "SliceCopyValue", Kinds: []reflect.Kind{reflect.Slice}, Received: dst}
 	}
 
 	src = skipElem(src)
-	switch src.Kind() {
-	case reflect.Slice:
-		dstKind := dst.Type().Elem().Kind()
-		dstElem := src.Type().Elem()
-		if (dstElem.Kind() != dstKind) &&
-			(dstElem.Kind() == reflect.Ptr && dstElem.Elem().Kind() != dstKind) {
-			// not support copy []*int to []int
-			// not support copy []int to []*int
-			return fmt.Errorf("cannot copy slice from %s into %s", src.Type(), dst.Type())
-		}
-	default:
-		return fmt.Errorf("cannot copy %v into a slice", src.Type())
+	if src.Kind() != reflect.Slice {
+		return nil, fmt.Errorf("cannot copy %v into a slice", src.Type())
+
 	}
 
 	if dst.IsZero() {
@@ -42,16 +44,15 @@ func (dcv *defaultCopyValue) SliceCopyValue(ctx context.Context, src, dst reflec
 		itemDst := reflect.New(typ).Elem()
 		fn, err := dcv.lookupCopyValue(itemDst)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if err := fn(ctx, src.Index(i), itemDst); err != nil {
-			return err
+			return nil, err
 		}
 		items = append(items, itemDst)
 	}
-	dst.SetLen(0)
-	dst.Set(reflect.Append(dst, items...))
-	return nil
+
+	return items, nil
 }
 
 func (dcv *defaultCopyValue) ArrayCopyValue(ctx context.Context, src, dst reflect.Value) error {
