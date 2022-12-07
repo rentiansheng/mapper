@@ -36,7 +36,10 @@ func (dcv *defaultCopyValue) ToSliceCopyValue(ctx context.Context, fieldName, sr
 }
 
 func (dcv *defaultCopyValue) SliceMapToSliceCopyValue(ctx context.Context, fieldName, src, dst reflect.Value) error {
-	if !dst.CanSet() || dst.Kind() != reflect.Slice {
+	if !dst.CanSet() {
+		return CanSetError{Name: "SliceMapToSliceCopyValue"}
+	}
+	if dst.Kind() != reflect.Slice {
 		return CopyValueError{
 			Name:     "SliceMapStrToSliceCopyValue",
 			Types:    nil,
@@ -84,7 +87,10 @@ func (dcv *defaultCopyValue) SliceMapToSliceCopyValue(ctx context.Context, field
 }
 
 func (dcv *defaultCopyValue) SliceStructToSliceCopyValue(ctx context.Context, fieldName, src, dst reflect.Value) error {
-	if !dst.CanSet() || dst.Kind() != reflect.Slice {
+	if !dst.CanSet() {
+		return CanSetError{Name: "SliceStructToSliceCopyValue"}
+	}
+	if dst.Kind() != reflect.Slice {
 		return CopyValueError{
 			Name:     "SliceMapStrToSliceCopyValue",
 			Types:    nil,
@@ -139,7 +145,10 @@ func (dcv *defaultCopyValue) SliceStructToSliceCopyValue(ctx context.Context, fi
 }
 
 func (dcv *defaultCopyValue) MapKeyToSliceCopyValue(ctx context.Context, src, dst reflect.Value) error {
-	if !dst.CanSet() || dst.Kind() != reflect.Slice {
+	if !dst.CanSet() {
+		return CanSetError{Name: "MapKeyToSliceCopyValue"}
+	}
+	if dst.Kind() != reflect.Slice {
 		return CopyValueError{
 			Name:     "MapKeyToSliceCopyValue",
 			Types:    nil,
@@ -179,7 +188,10 @@ func (dcv *defaultCopyValue) MapKeyToSliceCopyValue(ctx context.Context, src, ds
 }
 
 func (dcv *defaultCopyValue) MapValueToSliceCopyValue(ctx context.Context, src, dst reflect.Value) error {
-	if !dst.CanSet() || dst.Kind() != reflect.Slice {
+	if !dst.CanSet() {
+		return CanSetError{Name: "MapValueToSliceCopyValue"}
+	}
+	if dst.Kind() != reflect.Slice {
 		return CopyValueError{
 			Name:     "MapValueToSliceCopyValue",
 			Types:    nil,
@@ -222,12 +234,16 @@ func (dcv *defaultCopyValue) SliceChunk(ctx context.Context, src, dst reflect.Va
 	if size <= 0 {
 		return fmt.Errorf("slice chunk parameter size must be > 0")
 	}
-	if !dst.CanSet() || dst.Kind() != reflect.Slice || dst.Type().Elem().Kind() != reflect.Slice {
+	if !dst.CanSet() {
+		return CanSetError{Name: "SliceChunk"}
+	}
+	if dst.Kind() != reflect.Slice || dst.Type().Elem().Kind() != reflect.Slice {
 		return fmt.Errorf("slice chunk can only copy valid and settable from [][]*")
 	}
 	if dst.IsNil() {
 		dst.Set(reflect.New(dst.Type()).Elem())
 	}
+
 	sliceType := dst.Type().Elem()
 	dstValue := reflect.New(sliceType).Elem()
 	items, err := dcv.sliceCopyValue(ctx, src, dstValue)

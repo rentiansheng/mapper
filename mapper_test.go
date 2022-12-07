@@ -271,3 +271,18 @@ func TestChunk(t *testing.T) {
 	err = Chunk(ctx, src, &dst, 0)
 	require.Error(t, err, "TestChunk size = 0field")
 }
+
+func TestMapperInterfaceNil(t *testing.T) {
+	var src interface{}
+	var dst interface{}
+
+	err := Mapper(context.TODO(), src, &dst)
+	require.NoError(t, err, "TestMapperInterfaceNil")
+	require.Equal(t, src, dst, "TestMapperInterfaceNil")
+
+	src = "111"
+	err = Mapper(context.TODO(), src, &dst)
+	require.NoError(t, err, "TestMapperInterfaceNil")
+	require.Equal(t, src, dst, "TestMapperInterfaceNil")
+
+}

@@ -66,12 +66,19 @@ func mapperHandler(ctx context.Context, dcv *defaultCopyValue, src, dst interfac
 	if dstV.Kind() != reflect.Ptr {
 		return fmt.Errorf("copy to object must be pointer")
 	}
+
+	srcV := reflect.ValueOf(src)
+	if dstV.Kind() == reflect.Invalid {
+		if srcV.Kind() == reflect.Invalid {
+			return nil
+		}
+		return fmt.Errorf("copy to object is nil")
+	}
 	dstV = dstV.Elem()
 	if !dstV.CanSet() {
 		return CopyValueError{Name: "mapper", Kinds: []reflect.Kind{reflect.Bool}, Received: dstV}
 	}
 
-	srcV := reflect.ValueOf(src)
 	fn, err := dcv.lookupCopyValue(dstV)
 	if err != nil {
 		return err

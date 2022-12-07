@@ -13,7 +13,10 @@ import (
 ***************************/
 
 func (dcv *defaultCopyValue) InterfaceCopyValue(ctx context.Context, src, dst reflect.Value) error {
-	if !dst.CanSet() && dst.Kind() != reflect.Interface {
+	if !dst.CanSet() {
+		return CanSetError{Name: "InterfaceCopyValue"}
+	}
+	if dst.Kind() != reflect.Interface {
 		return CopyValueError{Name: "InterfaceCopyValue", Kinds: []reflect.Kind{reflect.Interface}, Received: dst}
 	}
 

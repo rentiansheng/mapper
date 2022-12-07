@@ -14,7 +14,10 @@ import (
 ***************************/
 
 func (dcv *defaultCopyValue) MapCopyValue(ctx context.Context, src, dst reflect.Value) error {
-	if !dst.CanSet() || dst.Kind() != reflect.Map {
+	if !dst.CanSet() {
+		return CanSetError{Name: "MapCopyValue"}
+	}
+	if dst.Kind() != reflect.Map {
 		return CopyValueError{Name: "CopyMapValue", Kinds: []reflect.Kind{reflect.Map}, Received: dst}
 	}
 	switch src.Kind() {

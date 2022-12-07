@@ -562,3 +562,27 @@ func TestNilInterfaceToInterfaceCopyValue(t *testing.T) {
 	require.NoError(t, err, "test copy nil to nil ")
 	require.Equal(t, nil, dst, "test copy nil to nil ")
 }
+
+func TestInterfaceCanSetError(t *testing.T) {
+	var src interface{}
+	var dst interface{}
+	err := defaultCopy.InterfaceCopyValue(ctx, reflect.ValueOf(src), reflect.ValueOf(dst))
+	require.Error(t, err, "InterfaceCopyValue copy to object must be pointers", "test copy nil to nil ")
+	if err != nil {
+		require.Equal(t, err.Error(), "InterfaceCopyValue copy to object must be pointers", "test copy nil to nil ")
+
+	}
+
+}
+
+func TestIntCanSetError(t *testing.T) {
+	src := 0
+	dst := 0
+	err := defaultCopy.IntCopyValue(ctx, reflect.ValueOf(src), reflect.ValueOf(dst))
+	require.Error(t, err, "IntCopyValue copy to object must be pointers")
+	if err != nil {
+		require.Equal(t, err.Error(), "IntCopyValue copy to object must be pointers")
+
+	}
+
+}
