@@ -48,7 +48,10 @@ func newStructCache() *structCache {
 }
 
 func (dcv *defaultCopyValue) StructCopyValue(ctx context.Context, src, dst reflect.Value) error {
-	if !dst.CanSet() || dst.Kind() != reflect.Struct {
+	if !dst.CanSet() {
+		return CanSetError{Name: "StructCopyValue"}
+	}
+	if dst.Kind() != reflect.Struct {
 		return CopyValueError{Name: "copyStruct.StructCopyValue", Kinds: []reflect.Kind{reflect.Struct}, Received: dst}
 	}
 
@@ -115,7 +118,10 @@ func (dcv *defaultCopyValue) StructCopyValue(ctx context.Context, src, dst refle
 }
 
 func (dcv *defaultCopyValue) MapToStructCopyValue(ctx context.Context, src, dst reflect.Value) error {
-	if !dst.CanSet() || dst.Kind() != reflect.Struct {
+	if !dst.CanSet() {
+		return CanSetError{Name: "MapToStructCopyValue"}
+	}
+	if dst.Kind() != reflect.Struct {
 		return CopyValueError{Name: "copyStruct.MapToStructCopyValue", Kinds: []reflect.Kind{reflect.Struct}, Received: dst}
 	}
 	if src.Kind() != reflect.Map || src.Type().Key().Kind() != reflect.String {
@@ -160,7 +166,10 @@ func (dcv *defaultCopyValue) MapToStructCopyValue(ctx context.Context, src, dst 
 }
 
 func (dcv *defaultCopyValue) StructToMapCopyValue(ctx context.Context, src, dst reflect.Value) error {
-	if !dst.CanSet() || dst.Kind() != reflect.Map || dst.Type().Key().Kind() != reflect.String {
+	if !dst.CanSet() {
+		return CanSetError{Name: "StructToMapCopyValue"}
+	}
+	if dst.Kind() != reflect.Map || dst.Type().Key().Kind() != reflect.String {
 		return CopyValueError{Name: "copyStruct.CopyStructMapValue", Kinds: []reflect.Kind{reflect.Struct}, Received: dst}
 	}
 

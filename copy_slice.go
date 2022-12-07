@@ -25,7 +25,10 @@ func (dcv *defaultCopyValue) SliceCopyValue(ctx context.Context, src, dst reflec
 }
 
 func (dcv *defaultCopyValue) sliceCopyValue(ctx context.Context, src, dst reflect.Value) ([]reflect.Value, error) {
-	if !dst.CanSet() || dst.Kind() != reflect.Slice {
+	if !dst.CanSet() {
+		return nil, CanSetError{Name: "sliceCopyValue"}
+	}
+	if dst.Kind() != reflect.Slice {
 		return nil, CopyValueError{Name: "SliceCopyValue", Kinds: []reflect.Kind{reflect.Slice}, Received: dst}
 	}
 
@@ -56,7 +59,10 @@ func (dcv *defaultCopyValue) sliceCopyValue(ctx context.Context, src, dst reflec
 }
 
 func (dcv *defaultCopyValue) ArrayCopyValue(ctx context.Context, src, dst reflect.Value) error {
-	if !dst.CanSet() || dst.Kind() != reflect.Array {
+	if !dst.CanSet() {
+		return CanSetError{Name: "ArrayCopyValue"}
+	}
+	if dst.Kind() != reflect.Array {
 		return CopyValueError{Name: "SliceCopyValue", Kinds: []reflect.Kind{reflect.Slice}, Received: dst}
 	}
 

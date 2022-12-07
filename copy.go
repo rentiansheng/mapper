@@ -38,7 +38,10 @@ type defaultCopyValue struct {
 }
 
 func (dcv *defaultCopyValue) BooleanCopyValue(ctx context.Context, src, dst reflect.Value) error {
-	if !dst.IsValid() || !dst.CanSet() || dst.Kind() != reflect.Bool && dst.Kind() != reflect.Interface {
+	if !dst.CanSet() {
+		return CanSetError{Name: "BooleanCopyValue"}
+	}
+	if !dst.IsValid() || dst.Kind() != reflect.Bool && dst.Kind() != reflect.Interface {
 		return CopyValueError{Name: "BooleanCopyValue", Kinds: []reflect.Kind{reflect.Bool}, Received: dst}
 	}
 
@@ -53,11 +56,7 @@ func (dcv *defaultCopyValue) BooleanCopyValue(ctx context.Context, src, dst refl
 
 func (dcv *defaultCopyValue) IntCopyValue(ctx context.Context, src, dst reflect.Value) error {
 	if !dst.CanSet() {
-		return CopyValueError{
-			Name:     "IntCopyValue",
-			Kinds:    []reflect.Kind{reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int},
-			Received: dst,
-		}
+		return CanSetError{Name: "IntCopyValue"}
 	}
 
 	src = skipElem(src)
@@ -124,11 +123,7 @@ func (dcv *defaultCopyValue) IntCopyValue(ctx context.Context, src, dst reflect.
 
 func (dcv *defaultCopyValue) UintCopyValue(ctx context.Context, src, dst reflect.Value) error {
 	if !dst.CanSet() {
-		return CopyValueError{
-			Name:     "IntCopyValue",
-			Kinds:    []reflect.Kind{reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint},
-			Received: dst,
-		}
+		return CanSetError{Name: "UintCopyValue"}
 	}
 
 	src = skipElem(src)
@@ -195,7 +190,7 @@ func (dcv *defaultCopyValue) UintCopyValue(ctx context.Context, src, dst reflect
 
 func (dcv *defaultCopyValue) FloatCopyValue(ctx context.Context, src, dst reflect.Value) error {
 	if !dst.CanSet() {
-		return CopyValueError{Name: "FloatCopyValue", Kinds: []reflect.Kind{reflect.Float32, reflect.Float64}, Received: dst}
+		return CanSetError{Name: "FloatCopyValue"}
 	}
 
 	src = skipElem(src)
@@ -243,7 +238,7 @@ func (dcv *defaultCopyValue) FloatCopyValue(ctx context.Context, src, dst reflec
 
 func (dcv *defaultCopyValue) StringCopyValue(ctx context.Context, src, dst reflect.Value) error {
 	if !dst.CanSet() {
-		return CopyValueError{Name: "StringCopyValue", Kinds: []reflect.Kind{reflect.String}, Received: dst}
+		return CanSetError{Name: "StringCopyValue"}
 	}
 
 	src = skipElem(src)
@@ -267,7 +262,10 @@ func (dcv *defaultCopyValue) StringCopyValue(ctx context.Context, src, dst refle
 
 /*
 func (dcv *defaultCopyValue) TimeCopyValue(ctx context.Context, src, dst reflect.Value) error {
-	if !dst.CanSet() || dst.Type() != mtype.TimeType {
+	if !dst.CanSet() {
+		return CanSetError{Name:"TimeCopyValue"}
+	}
+	if   dst.Type() != mtype.TimeType {
 		return CopyValueError{
 			Name:     "InterfaceCopyValue",
 			Types:    []reflect.Type{dst.Type()},
@@ -306,7 +304,10 @@ func (dcv *defaultCopyValue) TimeCopyValue(ctx context.Context, src, dst reflect
 }*/
 
 func (dcv *defaultCopyValue) PtrCopyValue(ctx context.Context, src, dst reflect.Value) error {
-	if !dst.CanSet() || dst.Kind() != reflect.Ptr {
+	if !dst.CanSet() {
+		return CanSetError{Name: "PtrCopyValue"}
+	}
+	if dst.Kind() != reflect.Ptr {
 		return CopyValueError{Name: "PtrCopyValue", Kinds: []reflect.Kind{reflect.Ptr}, Received: dst}
 	}
 

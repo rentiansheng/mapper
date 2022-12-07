@@ -40,3 +40,11 @@ func (vde CopyValueError) Error() string {
 	}
 	return fmt.Sprintf("%s can only copy valid and settable %s, but got %s", vde.Name, strings.Join(typeKinds, ", "), received)
 }
+
+type CanSetError struct {
+	Name string
+}
+
+func (cse CanSetError) Error() string {
+	return fmt.Sprintf("%s copy to object must be pointers", cse.Name)
+}
