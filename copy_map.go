@@ -20,6 +20,7 @@ func (dcv *defaultCopyValue) MapCopyValue(ctx context.Context, src, dst reflect.
 	if dst.Kind() != reflect.Map {
 		return CopyValueError{Name: "CopyMapValue", Kinds: []reflect.Kind{reflect.Map}, Received: dst}
 	}
+	src = skipElem(src)
 	switch src.Kind() {
 	case reflect.Map:
 	case reflect.Struct:

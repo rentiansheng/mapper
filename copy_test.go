@@ -586,3 +586,13 @@ func TestIntCanSetError(t *testing.T) {
 	}
 
 }
+
+func TestInterfaceToMap(t *testing.T) {
+	var src interface{}
+	src = map[string]interface{}{"1": map[string]interface{}{"1": 1}}
+	dst := make(map[string]map[string]interface{}, 0)
+	err := defaultCopy.MapCopyValue(ctx, reflect.ValueOf(src), reflect.ValueOf(&dst).Elem())
+	require.NoError(t, err, "test copy interface to map")
+	require.Equal(t, fmt.Sprintf("%v", src), fmt.Sprintf("%v", dst), "test copy interface to map")
+
+}
