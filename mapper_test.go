@@ -286,3 +286,34 @@ func TestMapperInterfaceNil(t *testing.T) {
 	require.Equal(t, src, dst, "TestMapperInterfaceNil")
 
 }
+
+type testInterfaceAPI interface {
+	T() string
+}
+
+type ts struct {
+	A string
+}
+
+func (t ts) T() string {
+	return t.A
+}
+
+func TestInterfaceAPIToInterfaceAPI(t *testing.T) {
+	type testS []struct {
+		T testInterfaceAPI
+	}
+
+	arr := testS{
+		{T: &ts{A: "1111"}}, {},
+	}
+
+	err := Mapper(context.TODO(), arr[0], &arr[1])
+	require.NoError(t, err, "TestInterfaceAPIToInterfaceAPI ptr struct interface ")
+	require.Equal(t, arr[0].T.T(), arr[1].T.T(), "TestInterfaceAPIToInterfaceAPI ptr struct interface value")
+
+	arr[0].T = ts{A: "2222"}
+	err = Mapper(context.TODO(), arr[0], &arr[1])
+	require.NoError(t, err, "TestInterfaceAPIToInterfaceAPI struct interface ")
+	require.Equal(t, arr[0].T.T(), arr[1].T.T(), "TestInterfaceAPIToInterfaceAPI struct interface value")
+}

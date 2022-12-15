@@ -27,6 +27,7 @@ type fieldDescription struct {
 	inline    bool
 	omitEmpty bool
 	private   bool
+	typ       reflect.Type
 }
 
 type structDescription struct {
@@ -96,6 +97,9 @@ func (dcv *defaultCopyValue) StructCopyValue(ctx context.Context, src, dst refle
 				continue
 			}
 			dstItem = reflect.NewAt(dstItem.Type(), unsafe.Pointer(dstItem.UnsafeAddr())).Elem()
+		}
+		if dstItem.Kind() == reflect.Interface && dstItem.IsNil() {
+			dstItem.Set(reflect.New(descField.typ).Elem())
 		}
 		fn, err := dcv.lookupCopyValue(dstItem)
 		if err != nil {
@@ -220,6 +224,7 @@ func (dcv *defaultCopyValue) describeStruct(ctx context.Context, t reflect.Type)
 			fieldName: sf.Name,
 			name:      sf.Name,
 			idx:       i,
+			typ:       sf.Type,
 		}
 		if !sf.IsExported() {
 			desc.private = true

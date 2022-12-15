@@ -30,7 +30,8 @@ func (dcv *defaultCopyValue) InterfaceCopyValue(ctx context.Context, src, dst re
 		return nil
 	}
 
-	tmpVal := reflect.New(src.Type()).Elem()
+	tmpValPtr := reflect.New(src.Type())
+	tmpVal := tmpValPtr.Elem()
 	fn, err := dcv.lookupCopyValue(src)
 	if err != nil {
 		return err
@@ -39,6 +40,10 @@ func (dcv *defaultCopyValue) InterfaceCopyValue(ctx context.Context, src, dst re
 		return err
 	}
 
-	dst.Set(tmpVal)
+	if tmpVal.Kind() != reflect.Invalid && tmpVal.Type().Kind() == reflect.Struct && tmpValPtr.CanConvert(dst.Type()) {
+		dst.Set(tmpValPtr.Convert(dst.Type()))
+	} else {
+		dst.Set(tmpVal)
+	}
 	return nil
 }
