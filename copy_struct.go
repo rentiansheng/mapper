@@ -8,12 +8,15 @@ import (
 	"unsafe"
 )
 
-/***************************
-    @author: tiansheng.ren
-    @date: 2022/10/25
-    @desc:
+/*
+**************************
 
-***************************/
+	@author: tiansheng.ren
+	@date: 2022/10/25
+	@desc:
+
+**************************
+*/
 var (
 	tagName            = "json"
 	excludeTagValue    = "-"
@@ -189,7 +192,11 @@ func (dcv *defaultCopyValue) StructToMapCopyValue(ctx context.Context, src, dst 
 		return err
 	}
 	for name, descField := range srcSD.fm {
-		fieldSrc := src.FieldByName(descField.name)
+		if descField.private && !dcv.structCache.copyPrivate {
+			//fix map to struct 拷贝私有对象
+			continue
+		}
+		fieldSrc := src.FieldByName(descField.fieldName)
 		dstVal := reflect.New(dst.Type().Elem()).Elem()
 		fn, err := dcv.lookupCopyValue(dstVal)
 		if err != nil {
