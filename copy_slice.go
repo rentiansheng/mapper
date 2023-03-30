@@ -18,7 +18,7 @@ func (dcv *defaultCopyValue) SliceCopyValue(ctx context.Context, src, dst reflec
 	if err != nil {
 		return nil
 	}
-	dst.SetLen(0)
+	//dst.SetLen(0)
 	dst.Set(reflect.Append(dst, items...))
 
 	return nil
