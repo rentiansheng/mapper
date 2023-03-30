@@ -42,7 +42,26 @@ func MapKeys(ctx context.Context, src, dst interface{}) error {
 
 func MapValues(ctx context.Context, src, dst interface{}) error {
 	return mapperCV.MapValueToSliceCopyValue(ctx, reflect.ValueOf(src), reflect.ValueOf(dst).Elem())
+}
 
+func Merge(ctx context.Context, srcList []interface{}, dst interface{}) error {
+	for _, src := range srcList {
+		if err := mapperHandler(ctx, mapperCV, src, dst); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func AllMerge(ctx context.Context, srcList []interface{}, dst interface{}) error {
+	for _, src := range srcList {
+		if err := mapperHandler(ctx, allMapperCV, src, dst); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func Chunk(ctx context.Context, src, dst interface{}, size int) error {

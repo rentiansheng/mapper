@@ -317,3 +317,194 @@ func TestInterfaceAPIToInterfaceAPI(t *testing.T) {
 	require.NoError(t, err, "TestInterfaceAPIToInterfaceAPI struct interface ")
 	require.Equal(t, arr[0].T.T(), arr[1].T.T(), "TestInterfaceAPIToInterfaceAPI struct interface value")
 }
+
+func TestMergeStruct(t *testing.T) {
+	dst := struct {
+		A   string
+		B   string
+		p   string
+		ptr *string
+	}{}
+
+	srcATmp := struct {
+		A string
+	}{
+		A: "src a tmp",
+	}
+
+	srcA := srcATmp
+	srcA.A = "src a"
+
+	srcB := struct {
+		B string
+	}{
+		B: "src b",
+	}
+	srcP := struct {
+		p string
+	}{
+		p: "src p",
+	}
+
+	err := Merge(ctx, []interface{}{srcATmp, srcB, srcP, srcA}, &dst)
+	require.NoError(t, err, "TestMergeStruct  error. %s ", err)
+	require.Equal(t, srcA.A, dst.A)
+	require.Equal(t, srcB.B, dst.B)
+	// 不拷贝私有对象
+	require.Equal(t, "", dst.p)
+	require.Equal(t, (*string)(nil), dst.ptr)
+}
+
+func TestAllMergeStruct(t *testing.T) {
+	dst := struct {
+		A   string
+		B   string
+		p   string
+		ptr *string
+	}{}
+
+	srcATmp := struct {
+		A string
+	}{
+		A: "src a tmp",
+	}
+
+	srcA := srcATmp
+	srcA.A = "src a"
+
+	srcB := struct {
+		B string
+	}{
+		B: "src b",
+	}
+	srcP := struct {
+		p string
+	}{
+		p: "src p",
+	}
+
+	err := AllMerge(ctx, []interface{}{srcATmp, srcB, srcP, srcA}, &dst)
+	require.NoError(t, err, "TestAllMergeStruct  error. %s ", err)
+	require.Equal(t, srcA.A, dst.A)
+	require.Equal(t, srcB.B, dst.B)
+	require.Equal(t, srcP.p, dst.p)
+	require.Equal(t, (*string)(nil), dst.ptr)
+}
+
+func TestMergeMap(t *testing.T) {
+	dst := make(map[string]interface{}, 0)
+	dst["ptr"] = nil
+	srcATmp := map[string]string{"a": "src a tmp"}
+	srcB := map[string]string{"b": "src b"}
+	srcA := map[string]string{"a": "src a"}
+
+	err := Merge(ctx, []interface{}{srcATmp, srcB, srcA}, &dst)
+	require.NoError(t, err, "TestAllMergeStruct  error. %s ", err)
+
+	require.Equal(t, srcA["a"], dst["a"])
+	require.Equal(t, srcB["b"], dst["b"])
+	require.Equal(t, nil, dst["ptr"])
+}
+
+func TestMergeMapToStruct(t *testing.T) {
+	dst := struct {
+		A   string `json:"a"`
+		B   string `json:"b"`
+		p   string
+		ptr *string
+	}{}
+
+	srcATmp := map[string]string{"a": "src a tmp"}
+	srcB := map[string]string{"b": "src b"}
+	srcA := map[string]string{"a": "src a"}
+	srcP := map[string]string{"p": "src p"}
+
+	err := Merge(ctx, []interface{}{srcATmp, srcB, srcA, srcP}, &dst)
+	require.NoError(t, err, "TestMergeMapToStruct  error. %s ", err)
+
+	require.Equal(t, srcA["a"], dst.A)
+	require.Equal(t, srcB["b"], dst.B)
+	// 不拷贝私有对象
+	require.Equal(t, "", dst.p)
+	require.Equal(t, (*string)(nil), dst.ptr)
+}
+
+func TestAllMergeMapToStruct(t *testing.T) {
+	dst := struct {
+		A   string `json:"a"`
+		B   string `json:"b"`
+		p   string
+		ptr *string
+	}{}
+
+	srcATmp := map[string]string{"a": "src a tmp"}
+	srcB := map[string]string{"b": "src b"}
+	srcA := map[string]string{"a": "src a"}
+	srcP := map[string]string{"p": "src p"}
+
+	err := AllMerge(ctx, []interface{}{srcATmp, srcB, srcA, srcP}, &dst)
+	require.NoError(t, err, "TestAllMergeMapToStruct  error. %s ", err)
+
+	require.Equal(t, srcA["a"], dst.A)
+	require.Equal(t, srcB["b"], dst.B)
+	require.Equal(t, srcP["p"], dst.p)
+	require.Equal(t, (*string)(nil), dst.ptr)
+}
+
+func TestMergeStructToMap(t *testing.T) {
+	dst := make(map[string]interface{}, 0)
+	srcATmp := struct {
+		A string `json:"a"`
+	}{
+		A: "src a tmp",
+	}
+
+	srcA := srcATmp
+	srcA.A = "src a"
+
+	srcB := struct {
+		B string `json:"b"`
+	}{
+		B: "src b",
+	}
+	srcP := struct {
+		p string
+	}{
+		p: "src p",
+	}
+	err := Merge(ctx, []interface{}{srcATmp, srcB, srcA, srcP}, &dst)
+	require.NoError(t, err, "TestMergeStructToMap  error. %s ", err)
+	require.Equal(t, srcA.A, dst["a"])
+	require.Equal(t, srcB.B, dst["b"])
+	if _, ok := dst["p"]; ok {
+		t.Fatalf("TestMergeStructToMap  error. %s ", "copy private field")
+	}
+}
+
+func TestAllMergeStructToMap(t *testing.T) {
+	dst := make(map[string]interface{}, 0)
+	srcATmp := struct {
+		A string `json:"a"`
+	}{
+		A: "src a tmp",
+	}
+
+	srcA := srcATmp
+	srcA.A = "src a"
+
+	srcB := struct {
+		B string `json:"b"`
+	}{
+		B: "src b",
+	}
+	srcP := struct {
+		p string
+	}{
+		p: "src p",
+	}
+	err := AllMerge(ctx, []interface{}{srcATmp, srcB, srcA, srcP}, &dst)
+	require.NoError(t, err, "TestAllMergeStructToMap  error. %s ", err)
+	require.Equal(t, srcA.A, dst["a"])
+	require.Equal(t, srcB.B, dst["b"])
+	require.Equal(t, srcP.p, dst["p"])
+}

@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/rentiansheng/mapper/mtype"
 	"math"
 	"reflect"
 	"strconv"
+
+	"github.com/rentiansheng/mapper/mtype"
 )
 
 /***************************
@@ -89,7 +90,6 @@ func (dcv *defaultCopyValue) IntCopyValue(ctx context.Context, src, dst reflect.
 		default:
 			return fmt.Errorf("cannot copy %v into an integer type", src.Type())
 		}
-
 	}
 	switch dst.Kind() {
 	case reflect.Int8:
