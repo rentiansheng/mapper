@@ -508,3 +508,42 @@ func TestAllMergeStructToMap(t *testing.T) {
 	require.Equal(t, srcB.B, dst["b"])
 	require.Equal(t, srcP.p, dst["p"])
 }
+
+func TestMergeInterfaceToPtrStruct(t *testing.T) {
+	type testStruct struct {
+		AA string `json:"aa"`
+	}
+
+	var dst interface{}
+	dst = &testStruct{}
+	// dst = testStruct{} not support
+
+	src := map[string]string{
+		"aa": "aa",
+	}
+	err := Mapper(ctx, src, &dst)
+	require.NoError(t, err, "TestAllMergeStructToMap  error. %s ", err)
+	require.Equal(t, src["aa"], dst.(*testStruct).AA)
+}
+
+/*
+
+// TODO: wait support
+func TestMergeInterfaceStruct(t *testing.T) {
+
+	type testStruct struct {
+		AA string `json:"aa"`
+	}
+
+	var dst interface{}
+	dst = testStruct{}
+
+	src := map[string]string{
+		"aa": "aa",
+	}
+	err := Mapper(ctx, src, &dst)
+	require.NoError(t, err, "TestAllMergeStructToMap  error. %s ", err)
+	require.Equal(t, src["aa"], dst.(*testStruct).AA)
+}
+
+*/

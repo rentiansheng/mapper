@@ -87,22 +87,40 @@ func mapperHandler(ctx context.Context, dcv *defaultCopyValue, src, dst interfac
 	}
 
 	srcV := reflect.ValueOf(src)
-	if dstV.Kind() == reflect.Invalid {
+	if dstV.Elem().Kind() == reflect.Invalid {
 		if srcV.Kind() == reflect.Invalid {
 			return nil
 		}
 		return fmt.Errorf("copy to object is nil")
 	}
-	dstV = dstV.Elem()
-	if !dstV.CanSet() {
+	if srcV.Kind() == reflect.Invalid || srcV.Kind() == reflect.Interface && srcV.IsValid() {
+		return nil
+	}
+
+	if !dstV.Elem().CanSet() {
 		return CopyValueError{Name: "mapper", Kinds: []reflect.Kind{reflect.Bool}, Received: dstV}
 	}
+	// support: type interface{}|struct  result is struct
+	rawDstV := dstV.Elem()
+	if rawDstV.Kind() != reflect.Invalid {
+		for ; rawDstV.Kind() == reflect.Interface; rawDstV = rawDstV.Elem() {
+		}
+		if rawDstV.Kind() == reflect.Pointer {
+			dstV = rawDstV
+		}
+
+	}
+	dstV = dstV.Elem()
 
 	fn, err := dcv.lookupCopyValue(dstV)
 	if err != nil {
 		return err
 	}
-	return fn(ctx, srcV, dstV)
+	if err := fn(ctx, srcV, dstV); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type mapper interface {
