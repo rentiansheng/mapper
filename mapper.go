@@ -105,7 +105,7 @@ func mapperHandler(ctx context.Context, dcv *defaultCopyValue, src, dst interfac
 	if rawDstV.Kind() != reflect.Invalid {
 		for ; rawDstV.Kind() == reflect.Interface; rawDstV = rawDstV.Elem() {
 		}
-		if rawDstV.Kind() == reflect.Pointer {
+		if rawDstV.Kind() == reflect.Ptr {
 			dstV = rawDstV
 		}
 
