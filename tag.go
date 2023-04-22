@@ -26,10 +26,12 @@ type NewTagHandleFn func(string) TagHande
 
 type TagHande interface {
 	Name() string
+	OmitEmpty() bool
 }
 
 type structTagInline struct {
-	name string
+	name      string
+	omitEmpty bool
 }
 
 func newJSONTag(tag string) TagHande {
@@ -41,12 +43,16 @@ func newJSONTag(tag string) TagHande {
 	if tags[0] != "" && tags[0] != excludeTagValue {
 		sti.name = strings.TrimSpace(tags[0])
 	}
+
 	// json tag  copy value
 	for _, item := range tags[0:] {
 		if itemVals := strings.Split(item, "="); strings.TrimSpace(itemVals[0]) == copyValueTagPrefix {
 			if len(itemVals) > 1 && itemVals[1] != "" {
 				sti.name = itemVals[1]
 			}
+		}
+		if item == "omitempty" {
+			sti.omitEmpty = true
 		}
 	}
 
@@ -103,4 +109,8 @@ var _ TagHande = (*gormTag)(nil)
 
 func (j structTagInline) Name() string {
 	return j.name
+}
+
+func (j structTagInline) OmitEmpty() bool {
+	return j.omitEmpty
 }

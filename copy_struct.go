@@ -85,9 +85,6 @@ func (dcv *defaultCopyValue) StructCopyValue(ctx context.Context, src, dst refle
 		return err
 	}
 	for name, descField := range dstSD.fm {
-		if descField.omitEmpty {
-			continue
-		}
 		srcDescField, ok := srcSD.fm[name]
 		if !ok {
 			// not found, continue
@@ -191,12 +188,27 @@ func (dcv *defaultCopyValue) StructToMapCopyValue(ctx context.Context, src, dst 
 	if err != nil {
 		return err
 	}
+	myIsNil := func(v reflect.Value) bool {
+
+		k := v.Kind()
+		switch k {
+		case reflect.Chan, reflect.Func, reflect.Map, reflect.Pointer, reflect.UnsafePointer, reflect.Interface, reflect.Slice:
+			return v.IsNil()
+
+		}
+		return false
+	}
 	for name, descField := range srcSD.fm {
 		if descField.private && !dcv.structCache.copyPrivate {
 			//fix map to struct 拷贝私有对象
 			continue
 		}
 		fieldSrc := src.FieldByName(descField.fieldName)
+		// copy struct to map, if the field is empty and tag has omitempty, we skip it.
+		if descField.omitEmpty && myIsNil(fieldSrc) {
+			continue
+		}
+
 		dstVal := reflect.New(dst.Type().Elem()).Elem()
 		fn, err := dcv.lookupCopyValue(dstVal)
 		if err != nil {
@@ -251,8 +263,10 @@ func (dcv *defaultCopyValue) describeStruct(ctx context.Context, t reflect.Type)
 			continue
 		}
 		for _, fn := range tagHandleFnList {
-			if name := fn.newFn(sf.Tag.Get(fn.tagName)).Name(); name != "" {
-				desc.name = name
+			if tag := fn.newFn(sf.Tag.Get(fn.tagName)); tag.Name() != "" {
+				desc.name = tag.Name()
+				desc.omitEmpty = tag.OmitEmpty()
+
 				break
 			}
 		}

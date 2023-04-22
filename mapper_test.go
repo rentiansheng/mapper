@@ -547,3 +547,41 @@ func TestMergeInterfaceStruct(t *testing.T) {
 }
 
 */
+
+func TestCopyStructToMapIgnoreNilOmitemptyField(t *testing.T) {
+	type testStruct struct {
+		A   string  `json:"a"`
+		AO  string  `json:"ao,omitempty"`
+		PA  *string `json:"pa"`
+		PAO *string `json:"pao,omitempty"`
+		PO  *string `json:"po"`
+	}
+	strPtrFn := func(s string) *string {
+		return &s
+	}
+
+	dst := make(map[string]interface{}, 0)
+	src := testStruct{
+		A:   "a",
+		AO:  "b",
+		PA:  strPtrFn("aa"),
+		PAO: nil,
+		PO:  nil,
+	}
+	dstLen := 4
+
+	err := Mapper(ctx, src, &dst)
+	require.NoError(t, err, "TestCopyStructToMapIgnoreNilOmitemptyField  error. %s ", err)
+	require.Equal(t, dstLen, len(dst))
+	require.Equal(t, src.A, dst["a"])
+	require.Equal(t, src.AO, dst["ao"])
+	require.Equal(t, *src.PA, dst["pa"])
+	// 设置类omitempty  不存在该值
+	//require.Equal(t, src.PAO, nil)
+	//       Error: Not equal:
+	//              expected: *string((*string)(nil))
+	//              actual  : <nil>(<nil>)
+	//require.Equal(t, src.PO, dst["po"])
+	require.Equal(t, nil, dst["po"])
+
+}
