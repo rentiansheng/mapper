@@ -26,8 +26,12 @@ func (dcv *defaultCopyValue) MapCopyValue(ctx context.Context, src, dst reflect.
 	case reflect.Struct:
 		return dcv.StructToMapCopyValue(ctx, src, dst)
 	default:
+		if src.Kind() == reflect.Invalid || src.IsNil() {
+			// dst is map, src is nil, just return
+			return nil
+		}
 		return CopyValueError{
-			Name:     "InterfaceCopyValue",
+			Name:     "MapCopyValue",
 			Kinds:    []reflect.Kind{reflect.Map},
 			Received: dst,
 		}

@@ -128,7 +128,13 @@ func (dcv *defaultCopyValue) MapToStructCopyValue(ctx context.Context, src, dst 
 	if dst.Kind() != reflect.Struct {
 		return CopyValueError{Name: "copyStruct.MapToStructCopyValue", Kinds: []reflect.Kind{reflect.Struct}, Received: dst}
 	}
-	if src.Kind() != reflect.Map || src.Type().Key().Kind() != reflect.String {
+	if src.Kind() != reflect.Map {
+		return CopyValueError{Name: "copyStruct.MapToStructCopyValue", Kinds: []reflect.Kind{reflect.Map}, Received: dst}
+	}
+	if src.IsNil() {
+		return nil
+	}
+	if src.Type().Key().Kind() != reflect.String {
 		return CopyValueError{Name: "copyStruct.MapToStructCopyValue", Kinds: []reflect.Kind{reflect.Map}, Received: dst}
 	}
 
