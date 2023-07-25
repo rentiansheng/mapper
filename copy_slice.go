@@ -16,7 +16,7 @@ import (
 func (dcv *defaultCopyValue) SliceCopyValue(ctx context.Context, src, dst reflect.Value) error {
 	items, err := dcv.sliceCopyValue(ctx, src, dst)
 	if err != nil {
-		return nil
+		return err
 	}
 	//dst.SetLen(0)
 	dst.Set(reflect.Append(dst, items...))
