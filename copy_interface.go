@@ -30,6 +30,19 @@ func (dcv *defaultCopyValue) InterfaceCopyValue(ctx context.Context, src, dst re
 		return nil
 	}
 
+	if !dst.IsNil() {
+		tmpVal := reflect.New(dst.Elem().Type()).Elem()
+		fn, err := dcv.lookupCopyValue(tmpVal)
+		if err != nil {
+			return err
+		}
+		if err := fn(ctx, src, tmpVal); err != nil {
+			return err
+		}
+		dst.Set(tmpVal)
+		return nil
+	}
+
 	tmpValPtr := reflect.New(src.Type())
 	tmpVal := tmpValPtr.Elem()
 	fn, err := dcv.lookupCopyValue(src)
