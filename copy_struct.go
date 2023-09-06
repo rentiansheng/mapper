@@ -56,7 +56,7 @@ func (dcv *defaultCopyValue) StructCopyValue(ctx context.Context, src, dst refle
 		return CanSetError{Name: "StructCopyValue"}
 	}
 	if dst.Kind() != reflect.Struct {
-		return CopyValueError{Name: "copyStruct.StructCopyValue", Kinds: []reflect.Kind{reflect.Struct}, Received: dst}
+		return LookupCopyValueError{Name: "StructCopyValue", Kinds: []reflect.Kind{reflect.Struct}, Received: dst}
 	}
 
 	src = skipElem(src)
@@ -67,10 +67,10 @@ func (dcv *defaultCopyValue) StructCopyValue(ctx context.Context, src, dst refle
 		return dcv.MapToStructCopyValue(ctx, src, dst)
 	default:
 		return CopyValueError{
-			Name:     "copyStruct.StructCopyValue",
+			Name:     "StructCopyValue",
 			Types:    nil,
 			Kinds:    []reflect.Kind{reflect.Map, reflect.Struct},
-			Received: dst,
+			Received: src,
 		}
 	}
 	if dst.IsZero() {
@@ -126,16 +126,17 @@ func (dcv *defaultCopyValue) MapToStructCopyValue(ctx context.Context, src, dst 
 		return CanSetError{Name: "MapToStructCopyValue"}
 	}
 	if dst.Kind() != reflect.Struct {
-		return CopyValueError{Name: "copyStruct.MapToStructCopyValue", Kinds: []reflect.Kind{reflect.Struct}, Received: dst}
+		return LookupCopyValueError{Name: "MapToStructCopyValue", Kinds: []reflect.Kind{reflect.Struct}, Received: dst}
 	}
 	if src.Kind() != reflect.Map {
-		return CopyValueError{Name: "copyStruct.MapToStructCopyValue", Kinds: []reflect.Kind{reflect.Map}, Received: dst}
+		return CopyValueError{Name: "MapToStructCopyValue", Kinds: []reflect.Kind{reflect.Map}, Received: src}
 	}
 	if src.IsNil() {
 		return nil
 	}
 	if src.Type().Key().Kind() != reflect.String {
-		return CopyValueError{Name: "copyStruct.MapToStructCopyValue", Kinds: []reflect.Kind{reflect.Map}, Received: dst}
+		// notice: this error is not accurate, need to be improved
+		return CopyValueError{Name: "MapToStructCopyValue", Kinds: []reflect.Kind{reflect.Map}, Received: src}
 	}
 
 	src = skipElem(src)
@@ -180,12 +181,12 @@ func (dcv *defaultCopyValue) StructToMapCopyValue(ctx context.Context, src, dst 
 		return CanSetError{Name: "StructToMapCopyValue"}
 	}
 	if dst.Kind() != reflect.Map || dst.Type().Key().Kind() != reflect.String {
-		return CopyValueError{Name: "copyStruct.CopyStructMapValue", Kinds: []reflect.Kind{reflect.Struct}, Received: dst}
+		return LookupCopyValueError{Name: "StructToMapCopyValue", Kinds: []reflect.Kind{reflect.Struct}, Received: dst}
 	}
 
 	src = skipElem(src)
 	if src.Kind() != reflect.Struct {
-		return fmt.Errorf("cannot copy %v into struct type", src.Type())
+		return CopyValueError{Name: "StructToMapCopyValue", Kinds: []reflect.Kind{reflect.Struct}, Received: src}
 	}
 	if dst.IsZero() {
 		dst.Set(reflect.New(dst.Type()).Elem())
@@ -218,7 +219,7 @@ func (dcv *defaultCopyValue) StructToMapCopyValue(ctx context.Context, src, dst 
 		dstVal := reflect.New(dst.Type().Elem()).Elem()
 		fn, err := dcv.lookupCopyValue(dstVal)
 		if err != nil {
-			return nil
+			return err
 		}
 		if err := fn(ctx, fieldSrc, dstVal); err != nil {
 			return err

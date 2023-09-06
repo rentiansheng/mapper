@@ -13,8 +13,7 @@ import (
 
 ***************************/
 
-// CopyValueError is an error returned from a ValueDecoder when the provided value can't be
-// copy by the StructCopyValue.
+// CopyValueError  copy element does not match destination element
 type CopyValueError struct {
 	Name     string
 	Types    []reflect.Type
@@ -47,4 +46,31 @@ type CanSetError struct {
 
 func (cse CanSetError) Error() string {
 	return fmt.Sprintf("%s copy to object must be pointers", cse.Name)
+}
+
+// LookupCopyValueError The current received element does not match the function
+type LookupCopyValueError struct {
+	Name     string
+	Types    []reflect.Type
+	Kinds    []reflect.Kind
+	Received reflect.Value
+}
+
+func (l LookupCopyValueError) Error() string {
+	typeKinds := make([]string, 0, len(l.Types)+len(l.Kinds))
+	for _, t := range l.Types {
+		typeKinds = append(typeKinds, t.String())
+	}
+	for _, k := range l.Kinds {
+		if k == reflect.Map {
+			typeKinds = append(typeKinds, "map[*]*")
+			continue
+		}
+		typeKinds = append(typeKinds, k.String())
+	}
+	received := l.Received.Kind().String()
+	if l.Received.IsValid() {
+		received = l.Received.Type().String()
+	}
+	return fmt.Sprintf("%s lookup copy function error, function can only copy valid and settable %s, but got %s", l.Name, strings.Join(typeKinds, ", "), received)
 }

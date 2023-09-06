@@ -43,12 +43,12 @@ func (dcv *defaultCopyValue) BooleanCopyValue(ctx context.Context, src, dst refl
 		return CanSetError{Name: "BooleanCopyValue"}
 	}
 	if !dst.IsValid() || dst.Kind() != reflect.Bool && dst.Kind() != reflect.Interface {
-		return CopyValueError{Name: "BooleanCopyValue", Kinds: []reflect.Kind{reflect.Bool}, Received: dst}
+		return LookupCopyValueError{Name: "BooleanCopyValue", Kinds: []reflect.Kind{reflect.Bool}, Received: dst}
 	}
 
 	src = skipElem(src)
-	if src.Kind() != dst.Kind() {
-		return fmt.Errorf("cannot copy %v into a boolean", src.Type())
+	if src.Kind() != reflect.Bool {
+		return CopyValueError{Name: "BooleanCopyValue", Kinds: []reflect.Kind{reflect.Bool}, Received: src}
 	}
 
 	dst.SetBool(src.Bool())
@@ -88,7 +88,12 @@ func (dcv *defaultCopyValue) IntCopyValue(ctx context.Context, src, dst reflect.
 			}
 
 		default:
-			return fmt.Errorf("cannot copy %v into an integer type", src.Type())
+			return CopyValueError{
+				Name: "IntCopyValue",
+				// no all kind. allow reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,reflect.Float32, reflect.Float64 no overflows value
+				Kinds:    []reflect.Kind{reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64},
+				Received: src,
+			}
 		}
 	}
 	switch dst.Kind() {
@@ -110,7 +115,7 @@ func (dcv *defaultCopyValue) IntCopyValue(ctx context.Context, src, dst reflect.
 			return fmt.Errorf("%d overflows int", i64)
 		}
 	default:
-		return CopyValueError{
+		return LookupCopyValueError{
 			Name:     "IntCopyValue",
 			Kinds:    []reflect.Kind{reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int},
 			Received: dst,
@@ -154,7 +159,12 @@ func (dcv *defaultCopyValue) UintCopyValue(ctx context.Context, src, dst reflect
 			}
 
 		default:
-			return fmt.Errorf("cannot copy %v into an unsigned integer type", src.Type())
+			return CopyValueError{
+				Name: "UintCopyValue",
+				// no all kind. allow reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,reflect.Float32, reflect.Float64 no overflows value
+				Kinds:    []reflect.Kind{reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint},
+				Received: src,
+			}
 		}
 	}
 	switch dst.Kind() {
@@ -177,8 +187,8 @@ func (dcv *defaultCopyValue) UintCopyValue(ctx context.Context, src, dst reflect
 		}
 
 	default:
-		return CopyValueError{
-			Name:     "IntCopyValue",
+		return LookupCopyValueError{
+			Name:     "UintCopyValue",
 			Kinds:    []reflect.Kind{reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint},
 			Received: dst,
 		}
@@ -217,7 +227,7 @@ func (dcv *defaultCopyValue) FloatCopyValue(ctx context.Context, src, dst reflec
 				Name: "FloatCopyValue",
 				Kinds: []reflect.Kind{reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint,
 					reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Float32, reflect.Float64},
-				Received: dst,
+				Received: src,
 			}
 		}
 	}
@@ -229,7 +239,7 @@ func (dcv *defaultCopyValue) FloatCopyValue(ctx context.Context, src, dst reflec
 		}
 	case reflect.Float64:
 	default:
-		return CopyValueError{Name: "FloatCopyValue", Kinds: []reflect.Kind{reflect.Float32, reflect.Float64}, Received: dst}
+		return LookupCopyValueError{Name: "FloatCopyValue", Kinds: []reflect.Kind{reflect.Float32, reflect.Float64}, Received: dst}
 	}
 
 	dst.SetFloat(f)
@@ -247,13 +257,22 @@ func (dcv *defaultCopyValue) StringCopyValue(ctx context.Context, src, dst refle
 	case reflect.String:
 		str = src.String()
 	default:
+		// allow []byte to string
 		if src.Type() == mtype.ByteSliceType {
 			if !src.IsZero() {
 				str = string(src.Interface().([]byte))
 			}
 		} else {
-			return fmt.Errorf("cannot copy %v into a string type", src.Type())
+			return CopyValueError{
+				Name:     "StringCopyValue",
+				Types:    []reflect.Type{mtype.ByteSliceType},
+				Kinds:    []reflect.Kind{reflect.String},
+				Received: src,
+			}
 		}
+	}
+	if dst.Kind() != reflect.String {
+		return LookupCopyValueError{Name: "StringCopyValue", Kinds: []reflect.Kind{reflect.String}, Received: dst}
 	}
 
 	dst.SetString(str)
@@ -308,7 +327,7 @@ func (dcv *defaultCopyValue) PtrCopyValue(ctx context.Context, src, dst reflect.
 		return CanSetError{Name: "PtrCopyValue"}
 	}
 	if dst.Kind() != reflect.Ptr {
-		return CopyValueError{Name: "PtrCopyValue", Kinds: []reflect.Kind{reflect.Ptr}, Received: dst}
+		return LookupCopyValueError{Name: "PtrCopyValue", Kinds: []reflect.Kind{reflect.Ptr}, Received: dst}
 	}
 
 	if src.IsZero() {

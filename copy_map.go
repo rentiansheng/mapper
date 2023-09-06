@@ -18,7 +18,7 @@ func (dcv *defaultCopyValue) MapCopyValue(ctx context.Context, src, dst reflect.
 		return CanSetError{Name: "MapCopyValue"}
 	}
 	if dst.Kind() != reflect.Map {
-		return CopyValueError{Name: "CopyMapValue", Kinds: []reflect.Kind{reflect.Map}, Received: dst}
+		return LookupCopyValueError{Name: "MapCopyValue", Kinds: []reflect.Kind{reflect.Map}, Received: dst}
 	}
 	src = skipElem(src)
 	switch src.Kind() {
@@ -33,7 +33,7 @@ func (dcv *defaultCopyValue) MapCopyValue(ctx context.Context, src, dst reflect.
 		return CopyValueError{
 			Name:     "MapCopyValue",
 			Kinds:    []reflect.Kind{reflect.Map},
-			Received: dst,
+			Received: src,
 		}
 
 	}

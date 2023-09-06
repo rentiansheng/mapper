@@ -20,7 +20,7 @@ var (
 
 func (dcv *defaultCopyValue) ToSliceCopyValue(ctx context.Context, fieldName, src, dst reflect.Value) error {
 	if src.Kind() != reflect.Slice {
-		return fmt.Errorf("ToSliceCopyValue source data type(%s) not slice", src.Kind())
+		return CopyValueError{Name: "ToSliceCopyValue", Kinds: []reflect.Kind{reflect.Slice}, Received: src}
 	}
 	fieldName = skipElem(fieldName)
 	switch src.Type().Elem().Kind() {
@@ -29,6 +29,7 @@ func (dcv *defaultCopyValue) ToSliceCopyValue(ctx context.Context, fieldName, sr
 	case reflect.Struct:
 		return dcv.SliceStructToSliceCopyValue(ctx, fieldName, src, dst)
 	default:
+		// extra copy error. need special handle
 		return fmt.Errorf("ToSliceCopyValue source data type(%s) not support. ssource data type must be slice map or slice struct", src.Kind())
 	}
 
@@ -40,7 +41,7 @@ func (dcv *defaultCopyValue) SliceMapToSliceCopyValue(ctx context.Context, field
 		return CanSetError{Name: "SliceMapToSliceCopyValue"}
 	}
 	if dst.Kind() != reflect.Slice {
-		return CopyValueError{
+		return LookupCopyValueError{
 			Name:     "SliceMapStrToSliceCopyValue",
 			Types:    nil,
 			Kinds:    []reflect.Kind{reflect.Slice},
@@ -54,7 +55,7 @@ func (dcv *defaultCopyValue) SliceMapToSliceCopyValue(ctx context.Context, field
 			Name:     "SliceMapStrToSliceCopyValue",
 			Types:    []reflect.Type{sliceMapStrAnyType},
 			Kinds:    nil,
-			Received: dst,
+			Received: src,
 		}
 	}
 	typ := dst.Type().Elem()
@@ -91,7 +92,7 @@ func (dcv *defaultCopyValue) SliceStructToSliceCopyValue(ctx context.Context, fi
 		return CanSetError{Name: "SliceStructToSliceCopyValue"}
 	}
 	if dst.Kind() != reflect.Slice {
-		return CopyValueError{
+		return LookupCopyValueError{
 			Name:     "SliceMapStrToSliceCopyValue",
 			Types:    nil,
 			Kinds:    []reflect.Kind{reflect.Slice},
@@ -149,7 +150,7 @@ func (dcv *defaultCopyValue) MapKeyToSliceCopyValue(ctx context.Context, src, ds
 		return CanSetError{Name: "MapKeyToSliceCopyValue"}
 	}
 	if dst.Kind() != reflect.Slice {
-		return CopyValueError{
+		return LookupCopyValueError{
 			Name:     "MapKeyToSliceCopyValue",
 			Types:    nil,
 			Kinds:    []reflect.Kind{reflect.Slice},
@@ -163,7 +164,7 @@ func (dcv *defaultCopyValue) MapKeyToSliceCopyValue(ctx context.Context, src, ds
 			Name:     "MapKeyToSliceCopyValue",
 			Types:    nil,
 			Kinds:    []reflect.Kind{reflect.Map},
-			Received: dst,
+			Received: src,
 		}
 	}
 
@@ -192,7 +193,7 @@ func (dcv *defaultCopyValue) MapValueToSliceCopyValue(ctx context.Context, src, 
 		return CanSetError{Name: "MapValueToSliceCopyValue"}
 	}
 	if dst.Kind() != reflect.Slice {
-		return CopyValueError{
+		return LookupCopyValueError{
 			Name:     "MapValueToSliceCopyValue",
 			Types:    nil,
 			Kinds:    []reflect.Kind{reflect.Slice},
@@ -206,7 +207,7 @@ func (dcv *defaultCopyValue) MapValueToSliceCopyValue(ctx context.Context, src, 
 			Name:     "MapValueToSliceCopyValue",
 			Types:    nil,
 			Kinds:    []reflect.Kind{reflect.Map},
-			Received: dst,
+			Received: src,
 		}
 	}
 

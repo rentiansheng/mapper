@@ -29,12 +29,17 @@ func (dcv *defaultCopyValue) sliceCopyValue(ctx context.Context, src, dst reflec
 		return nil, CanSetError{Name: "sliceCopyValue"}
 	}
 	if dst.Kind() != reflect.Slice {
-		return nil, CopyValueError{Name: "SliceCopyValue", Kinds: []reflect.Kind{reflect.Slice}, Received: dst}
+		return nil, LookupCopyValueError{Name: "sliceCopyValue", Kinds: []reflect.Kind{reflect.Slice}, Received: dst}
 	}
 
 	src = skipElem(src)
 	if src.Kind() != reflect.Slice {
-		return nil, fmt.Errorf("cannot copy %v into a slice", src.Type())
+		return nil, CopyValueError{
+			Name:     "sliceCopyValue",
+			Types:    nil,
+			Kinds:    []reflect.Kind{reflect.Slice},
+			Received: src,
+		}
 
 	}
 
@@ -63,7 +68,7 @@ func (dcv *defaultCopyValue) ArrayCopyValue(ctx context.Context, src, dst reflec
 		return CanSetError{Name: "ArrayCopyValue"}
 	}
 	if dst.Kind() != reflect.Array {
-		return CopyValueError{Name: "SliceCopyValue", Kinds: []reflect.Kind{reflect.Slice}, Received: dst}
+		return LookupCopyValueError{Name: "ArrayCopyValue", Kinds: []reflect.Kind{reflect.Slice}, Received: dst}
 	}
 
 	if src.Len() > dst.Len() {
@@ -73,14 +78,13 @@ func (dcv *defaultCopyValue) ArrayCopyValue(ctx context.Context, src, dst reflec
 	switch src.Kind() {
 	case reflect.Array:
 		if src.Elem().Kind() != dst.Elem().Kind() {
-			return fmt.Errorf("cannot decode array into %s", src.Type())
+			return CopyValueError{Name: "ArrayCopyValue", Kinds: []reflect.Kind{reflect.Array}, Received: src}
 		}
 	default:
-		return fmt.Errorf("cannot copy %v into a array", src.Type())
+		return CopyValueError{Name: "ArrayCopyValue", Kinds: []reflect.Kind{reflect.Array}, Received: src}
 	}
 
 	typ := dst.Elem().Type()
-	// TODO: string to bytes
 	for i := 0; i < src.Len(); i++ {
 		fn, err := dcv.lookupCopyValue(dst.Elem())
 		if err != nil {
