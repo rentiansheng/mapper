@@ -596,3 +596,28 @@ func TestInterfaceToMap(t *testing.T) {
 	require.Equal(t, fmt.Sprintf("%v", src), fmt.Sprintf("%v", dst), "test copy interface to map")
 
 }
+
+func TestInvalidToBuildInType(t *testing.T) {
+	var src interface{}
+	f64Dst, strDst, numDst, uNumDst, bDst := float64(2), "str", int64(2), uint64(2), true
+
+	err := defaultCopy.FloatCopyValue(ctx, reflect.ValueOf(src), reflect.ValueOf(&f64Dst).Elem())
+	require.NoError(t, err, "test copy interface to float")
+	require.Equal(t, int(2), int(f64Dst), "test copy invalid to float")
+
+	err = defaultCopy.StringCopyValue(ctx, reflect.ValueOf(src), reflect.ValueOf(&strDst).Elem())
+	require.NoError(t, err, "test copy interface to string")
+	require.Equal(t, "str", strDst, "test copy invalid to string")
+
+	err = defaultCopy.IntCopyValue(ctx, reflect.ValueOf(src), reflect.ValueOf(&numDst).Elem())
+	require.NoError(t, err, "test copy interface to int")
+	require.Equal(t, int(2), int(numDst), "test copy invalid to int")
+
+	err = defaultCopy.UintCopyValue(ctx, reflect.ValueOf(src), reflect.ValueOf(&uNumDst).Elem())
+	require.NoError(t, err, "test copy interface to uint")
+	require.Equal(t, int(2), int(uNumDst), "test copy invalid to uint")
+
+	err = defaultCopy.BooleanCopyValue(ctx, reflect.ValueOf(src), reflect.ValueOf(&bDst).Elem())
+	require.NoError(t, err, "test copy interface to bool")
+	require.Equal(t, true, bDst, "test copy invalid to bool")
+}

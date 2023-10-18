@@ -47,6 +47,9 @@ func (dcv *defaultCopyValue) BooleanCopyValue(ctx context.Context, src, dst refl
 	}
 
 	src = skipElem(src)
+	if src.Kind() == reflect.Invalid {
+		return nil
+	}
 	if src.Kind() != reflect.Bool {
 		return CopyValueError{Name: "BooleanCopyValue", Kinds: []reflect.Kind{reflect.Bool}, Received: src}
 	}
@@ -78,6 +81,9 @@ func (dcv *defaultCopyValue) IntCopyValue(ctx context.Context, src, dst reflect.
 		}
 		i64 = int64(f64)
 	default:
+		if src.Kind() == reflect.Invalid {
+			return nil
+		}
 		switch src.Type() {
 		case mtype.JSONNumber:
 			jsonNumber := src.Interface().(json.Number)
@@ -149,6 +155,9 @@ func (dcv *defaultCopyValue) UintCopyValue(ctx context.Context, src, dst reflect
 		}
 		i64 = uint64(f64)
 	default:
+		if src.Kind() == reflect.Invalid {
+			return nil
+		}
 		switch src.Type() {
 		case mtype.JSONNumber:
 			jsonNumber := src.Interface().(json.Number)
@@ -213,6 +222,9 @@ func (dcv *defaultCopyValue) FloatCopyValue(ctx context.Context, src, dst reflec
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		f = float64(src.Uint())
 	default:
+		if src.Kind() == reflect.Invalid {
+			return nil
+		}
 		switch src.Type() {
 		case mtype.JSONNumber:
 			jsonNumber := src.Interface().(json.Number)
@@ -257,6 +269,9 @@ func (dcv *defaultCopyValue) StringCopyValue(ctx context.Context, src, dst refle
 	case reflect.String:
 		str = src.String()
 	default:
+		if src.Kind() == reflect.Invalid {
+			return nil
+		}
 		// allow []byte to string
 		if src.Type() == mtype.ByteSliceType {
 			if !src.IsZero() {
