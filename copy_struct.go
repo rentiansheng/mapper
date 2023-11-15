@@ -189,7 +189,7 @@ func (dcv *defaultCopyValue) StructToMapCopyValue(ctx context.Context, src, dst 
 		return CopyValueError{Name: "StructToMapCopyValue", Kinds: []reflect.Kind{reflect.Struct}, Received: src}
 	}
 	if dst.IsZero() {
-		dst.Set(reflect.New(dst.Type()).Elem())
+		dst.Set(reflect.MakeMap(dst.Type()))
 	}
 	srcSD, err := dcv.describeStruct(ctx, src.Type())
 	if err != nil {
