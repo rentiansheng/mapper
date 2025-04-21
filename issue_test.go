@@ -3,6 +3,7 @@ package mapper
 import (
 	"encoding/json"
 	"github.com/stretchr/testify/require"
+	"reflect"
 	"testing"
 )
 
@@ -26,4 +27,27 @@ func TestIssue20(t *testing.T) {
 	}
 	err = Mapper(ctx, info, &fixedMeta)
 	require.NoError(t, err)
+}
+
+func TestIssue25(t *testing.T) {
+
+	type copySubS struct {
+		Sub string `json:"sub"`
+	}
+	type copyS struct {
+		Name string   `json:"name"`
+		Age  int      `json:"age"`
+		Sub  copySubS `json:"sub"`
+	}
+
+	src := copyS{Name: "test", Age: 10, Sub: copySubS{Sub: "test"}}
+	dst := map[string]interface{}{}
+	err := Mapper(ctx, src, &dst)
+	require.NoError(t, err)
+
+	require.Equal(t, src.Name, dst["name"])
+	require.Equal(t, src.Age, dst["age"])
+	require.Equal(t, reflect.Struct, reflect.ValueOf(dst["sub"]).Kind())
+	require.Equal(t, src.Sub.Sub, dst["sub"].(copySubS).Sub)
+
 }
