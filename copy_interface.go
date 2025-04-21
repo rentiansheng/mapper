@@ -53,10 +53,17 @@ func (dcv *defaultCopyValue) InterfaceCopyValue(ctx context.Context, src, dst re
 		return err
 	}
 
-	if tmpVal.Kind() != reflect.Invalid && tmpVal.Type().Kind() == reflect.Struct && tmpValPtr.CanConvert(dst.Type()) {
+	if interfaceMethodNum(dst) > 0 && tmpVal.Kind() != reflect.Invalid && tmpVal.Type().Kind() == reflect.Struct && tmpValPtr.CanConvert(dst.Type()) {
 		dst.Set(tmpValPtr.Convert(dst.Type()))
 	} else {
 		dst.Set(tmpVal)
 	}
 	return nil
+}
+
+func interfaceMethodNum(value reflect.Value) int {
+	if value.Kind() != reflect.Interface {
+		return -1
+	}
+	return value.NumMethod()
 }
